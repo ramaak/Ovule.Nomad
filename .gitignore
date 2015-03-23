@@ -1,0 +1,18 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/src/Ovule/obj/Debug
+/src/Ovule.Email/obj/Debug
+/src/Ovule.Nomad/obj/Debug
+/src/Ovule.Nomad.Client/obj/Debug
+/src/Ovule.Nomad.Client.Email/obj/Debug
+/src/Ovule.Nomad.Processor/bin/Debug
+/src/Ovule.Nomad.Processor/obj/Debug
+/src/Ovule.Nomad.Processor.Gui/bin/Debug
+/src/Ovule.Nomad.Processor.Gui/obj/Debug
+/src/Ovule.Nomad.Server/obj/Debug
+/src/Ovule.Nomad.Server.Email/obj/Debug
+/src/Ovule.Nomad.Server.Stock/bin/Debug
+/src/Ovule.Nomad.Server.Stock/obj/Debug
+/src/Ovule.Nomad.Wcf/obj/Debug

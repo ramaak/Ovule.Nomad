@@ -1,0 +1,119 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{9C1DC971-59BD-4EA4-92DE-6E20E35348F9}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Ovule.Nomad.Processor</RootNamespace>
+    <AssemblyName>Ovule.Nomad.Processor</AssemblyName>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Mono.Cecil, Version=0.9.5.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Mono.Cecil.0.9.5.4\lib\net40\Mono.Cecil.dll</HintPath>
+    </Reference>
+    <Reference Include="Mono.Cecil.Mdb, Version=0.9.5.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Mono.Cecil.0.9.5.4\lib\net40\Mono.Cecil.Mdb.dll</HintPath>
+    </Reference>
+    <Reference Include="Mono.Cecil.Pdb, Version=0.9.5.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Mono.Cecil.0.9.5.4\lib\net40\Mono.Cecil.Pdb.dll</HintPath>
+    </Reference>
+    <Reference Include="Mono.Cecil.Rocks, Version=0.9.5.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Mono.Cecil.0.9.5.4\lib\net40\Mono.Cecil.Rocks.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AssemblyProcessedEventArgs.cs" />
+    <Compile Include="AssemblyUtils.cs" />
+    <Compile Include="ApplicationProcessor.cs" />
+    <Compile Include="AssemblyProcessor.cs" />
+    <Compile Include="ModuleProcessor.cs" />
+    <Compile Include="IApplicationProcessor.cs" />
+    <Compile Include="IAssemblyProcessor.cs" />
+    <Compile Include="IModuleProcessor.cs" />
+    <Compile Include="ITypeProcessor.cs" />
+    <Compile Include="MethodProcessor.cs" />
+    <Compile Include="NomadMethodProcessor.cs" />
+    <Compile Include="NomadProcessorException.cs" />
+    <Compile Include="RelayMethodProcessor.cs" />
+    <Compile Include="RepeatMethodProcessor.cs" />
+    <Compile Include="TypeProcessor.cs" />
+    <Compile Include="IMethodProcessor.cs" />
+    <Compile Include="MethodAlreadyProcessedException.cs" />
+    <Compile Include="NomadAssemblyInfo.cs" />
+    <Compile Include="NomadModuleInfo.cs" />
+    <Compile Include="NomadMethodInfo.cs" />
+    <Compile Include="NomadTypeInfo.cs" />
+    <Compile Include="NomadTypeProcessorException.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Ovule.Nomad.Client.Email\Ovule.Nomad.Client.Email.csproj">
+      <Project>{bd7f699b-5d98-4231-8019-a72a2207df98}</Project>
+      <Name>Ovule.Nomad.Client.Email</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ovule.Nomad.Client\Ovule.Nomad.Client.csproj">
+      <Project>{50c07475-0a00-42aa-82bf-5634ef725cb9}</Project>
+      <Name>Ovule.Nomad.Client</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ovule.Nomad\Ovule.Nomad.csproj">
+      <Project>{27dad5d8-c1af-4a91-afa6-17f36282ff26}</Project>
+      <Name>Ovule.Nomad</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ovule\Ovule.csproj">
+      <Project>{25d61f61-2857-47e2-b2ac-ad82cf632185}</Project>
+      <Name>Ovule</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
