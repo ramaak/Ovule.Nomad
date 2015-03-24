@@ -23,6 +23,6 @@ namespace Ovule.Nomad.Processor
 {
   public interface ITypeProcessor
   {
-    NomadTypeInfo Process(TypeDefinition typeDef, Type nomadClientType);
+    NomadTypeInfo Process(TypeDefinition typeDef, bool isPartOfNomadAssembly, Type nomadClientType);
   }
 }

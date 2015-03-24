@@ -48,5 +48,15 @@ namespace Ovule.Nomad
     {
       throw new InvalidOperationException("Cannot copy parameter variables");
     }
+
+    public override void CopyFrom(Type type)
+    {
+      throw new InvalidOperationException("Cannot copy parameter variables");
+    }
+
+    public override void CopyTo(Type type)
+    {
+      throw new InvalidOperationException("Cannot copy parameter variables");
+    }
   }
 }

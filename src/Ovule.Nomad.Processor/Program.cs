@@ -31,7 +31,7 @@ namespace Ovule.Nomad.Processor
     //private const string ClientPath = @"C:\Users\adinucci\Documents\Visual Studio 2013\Projects\Ovule.Nomad\Ovule.Nomad.Sample\bin\Debug";
 
     private static Type NomadClientType = typeof(NomadWcfClient);
-    private const string ClientPath = @"C:\Users\adinucci\Documents\Visual Studio 2013\Projects\Ovule.Nomad\ChatClient\bin\Debug";
+    private const string ClientPath = @"C:\Users\adinucci\Documents\Visual Studio 2013\Projects\Ovule.Nomad.Sample\Ovule.Nomad.Sample.SemiRealistic.Client\bin\Debug";
     
 
     public static void Main(string[] args)

@@ -26,6 +26,7 @@ namespace Ovule.Nomad.Processor
   {
     #region Properties/Fields
 
+    public bool IsDefinedAsNomadAssembly { get; private set; }
     public AssemblyDefinition Assembly { get; private set; }
     public IList<NomadModuleInfo> AccessedModules { get; private set; }
 
@@ -39,6 +40,10 @@ namespace Ovule.Nomad.Processor
 
       Assembly = assemblyDef;
       AccessedModules = new List<NomadModuleInfo>();
+      
+      IsDefinedAsNomadAssembly = assemblyDef.HasCustomAttributes && assemblyDef.CustomAttributes.FirstOrDefault(
+        a => a.AttributeType.FullName == typeof(NomadAssemblyAttribute).FullName) != default(CustomAttribute);
+
     }
 
     #endregion ctors

@@ -24,6 +24,7 @@ namespace Ovule.Nomad.Processor
 {
   public class NomadTypeInfo
   {
+    public bool IsDefinedAsNomadType { get; private set; }
     public TypeDefinition Type { get; private set; }
     public IList<NomadMethodInfo> AccessedMethods { get; private set; }
 
@@ -33,6 +34,9 @@ namespace Ovule.Nomad.Processor
       
       Type = typeDef;
       AccessedMethods = new List<NomadMethodInfo>();
+
+      IsDefinedAsNomadType = typeDef.HasCustomAttributes && 
+        typeDef.CustomAttributes.FirstOrDefault(t => t.AttributeType.FullName == typeof(NomadTypeAttribute).FullName) != default(CustomAttribute);
     }
 
     public void AddAccessedMethod(NomadMethodInfo nomadMethodInfo)

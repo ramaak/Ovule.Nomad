@@ -21,6 +21,7 @@ using Ovule.Nomad.Wcf;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Reflection;
 using System.ServiceModel;
 using System.ServiceModel.Configuration;
 using System.ServiceModel.Description;
@@ -179,6 +180,10 @@ namespace Ovule.Nomad.Server
 
     public string ExecuteNomadMethodUsingBinarySerialiser(NomadMethodType methodType, bool runInMainThread, string assemblyFileName, string typeFullName, string methodName, IList<string> serialisedParameters, IList<string> serialisedNonLocalVariables)
     {
+      object executionObject = GetExecutionObject(assemblyFileName, typeFullName);
+      Assembly asm = executionObject.GetType().Assembly;
+      ResolveEventHandler onAssemblyResolve = (s, args) => { return TryResolveAssembly(asm, args.Name); };
+      AppDomain.CurrentDomain.AssemblyResolve += onAssemblyResolve;
       try
       {
         //TODO: Experiment with this to see if serialising individual items is better/worse than serialising lists as a whole
@@ -197,6 +202,10 @@ namespace Ovule.Nomad.Server
       {
         _logger.LogException(ex);
         throw;
+      }
+      finally
+      {
+        AppDomain.CurrentDomain.AssemblyResolve -= onAssemblyResolve;
       }
     }
 

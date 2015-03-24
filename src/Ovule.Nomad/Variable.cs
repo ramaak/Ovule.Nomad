@@ -48,6 +48,8 @@ namespace Ovule.Nomad
     }
 
     public abstract void CopyFrom(object obj);
+    public abstract void CopyFrom(Type type);
     public abstract void CopyTo(object obj);
+    public abstract void CopyTo(Type type);
   }
 }

@@ -112,7 +112,7 @@ namespace Ovule.Nomad.Processor
         VariableDefinition paramsVarDef = InjectNomadServiceCallParameters(newClientMethDef, ilProcessor, firstInstruction);
 
         MethodInfo getTypeFromHandle = typeof(Type).GetMethod("GetTypeFromHandle", new Type[] { typeof(System.RuntimeTypeHandle) });
-        //call new NomadClient().ExecuteRepeatCall(NomadMethodType, bool, Type,string,IList<Variable>)
+        //call new NomadClient().ExecuteRepeatCall(NomadMethodType, bool, Type,string,IList<ParameterVariable>)
         ilProcessor.InsertBefore(firstInstruction, ilProcessor.Create(OpCodes.Newobj, newClientMethDef.Module.Import(clientType.GetConstructor(System.Type.EmptyTypes))));
         ilProcessor.InsertBefore(firstInstruction, ilProcessor.Create(OpCodes.Ldc_I4, (int)NomadMethodType.Normal));
         ilProcessor.InsertBefore(firstInstruction, ilProcessor.Create(OpCodes.Ldc_I4, Convert.ToInt32(_runInMainThread)));

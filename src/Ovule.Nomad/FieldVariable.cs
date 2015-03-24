@@ -42,9 +42,19 @@ namespace Ovule.Nomad
       this.ThrowIfArgumentIsNull(() => obj);
 
       Type objType = obj.GetType();
-      FieldInfo field = objType.GetField(Name, BindingFlags.Instance | BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
+      CopyFrom(objType, obj);
+    }
+
+    public override void CopyFrom(Type type)
+    {
+      CopyFrom(type, null);
+    }
+
+    private void CopyFrom(Type type, object obj)
+    {
+      FieldInfo field = type.GetField(Name, BindingFlags.Instance | BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
       if (field == null)
-        throw new NomadVariableException("Could not find field on type '{0}' matching non-local variable '{1}'", objType.FullName, Name);
+        throw new NomadVariableException("Could not find field on type '{0}' matching non-local variable '{1}'", type.FullName, Name);
 
       Value = field.GetValue(obj);
     }
@@ -54,9 +64,19 @@ namespace Ovule.Nomad
       this.ThrowIfArgumentIsNull(() => obj);
 
       Type objType = obj.GetType();
-      FieldInfo field = objType.GetField(Name, BindingFlags.Instance | BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
+      CopyTo(objType, obj);
+    }
+
+    public override void CopyTo(Type type)
+    {
+      CopyTo(type, null);
+    }
+
+    private void CopyTo(Type type, object obj)
+    {
+      FieldInfo field = type.GetField(Name, BindingFlags.Instance | BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
       if (field == null)
-        throw new NomadVariableException("Could not find field on type '{0}' matching '{1}' '{2}'", objType.FullName, this.GetType().Name, Name);
+        throw new NomadVariableException("Could not find field on type '{0}' matching '{1}' '{2}'", type.FullName, this.GetType().Name, Name);
 
       field.SetValue(obj, Value);
     }

@@ -154,8 +154,9 @@ namespace Ovule.Nomad.Processor
           MethodReference calledMethDef = (MethodReference)instruction.Operand;
 
           if (calledMethDef.DeclaringType != null && calledMethDef.DeclaringType.FullName == typeof(NomadClient).FullName)
+            return; //multiple methods may reference each other, don't process them a second time
             //don't worry about message as meaningless to user if in recursive call, will get caught further up stack and rethrown
-            throw new MethodAlreadyProcessedException();
+            //throw new MethodAlreadyProcessedException();
 
           if (calledMethDef != methodDef && !nomadMethInfo.IsMethodAccessed(calledMethDef.FullName))
             ProcessDiscoveredMethod(calledMethDef, typeDef, methodDef, nomadMethInfo);

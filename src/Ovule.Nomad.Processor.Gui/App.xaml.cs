@@ -16,6 +16,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Nomad.  If not, see <http://www.gnu.org/licenses/>.
 */
+using System;
 using System.Windows;
 
 namespace Ovule.Nomad.Processor.Gui
@@ -25,5 +26,11 @@ namespace Ovule.Nomad.Processor.Gui
   /// </summary>
   public partial class App : Application
   {
+    private void Application_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
+    {
+      string message = string.Format("An error has occurred and this application will now shutdown:{0}{1}", Environment.NewLine, e.Exception.Message);
+      MessageBox.Show(message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+      Application.Current.Shutdown(1);
+    }
   }
 }

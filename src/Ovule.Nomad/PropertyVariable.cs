@@ -42,9 +42,21 @@ namespace Ovule.Nomad
       this.ThrowIfArgumentIsNull(() => obj);
 
       Type objType = obj.GetType();
-      PropertyInfo property = objType.GetProperty(Name, BindingFlags.Instance | BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
+      CopyFrom(objType, obj);
+    }
+
+    public override void CopyFrom(Type type)
+    {
+      this.ThrowIfArgumentIsNull(() => type);
+
+      CopyFrom(type, null);
+    }
+
+    private void CopyFrom(Type type, object obj)
+    {
+      PropertyInfo property = type.GetProperty(Name, BindingFlags.Instance | BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
       if (property == null)
-        throw new NomadVariableException("Could not find property on type '{0}' matching non-local variable '{1}'", objType.FullName, Name);
+        throw new NomadVariableException("Could not find property on type '{0}' matching non-local variable '{1}'", type.FullName, Name);
 
       Value = property.GetValue(obj, null);
     }
@@ -54,13 +66,23 @@ namespace Ovule.Nomad
       this.ThrowIfArgumentIsNull(() => obj);
 
       Type objType = obj.GetType();
-      PropertyInfo property = objType.GetProperty(Name, BindingFlags.Instance | BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
-      
+      CopyTo(objType, obj);
+    }
+
+    public override void CopyTo(Type type)
+    {
+      CopyTo(type, null);
+    }
+
+    private void CopyTo(Type type, object obj)
+    {
+      PropertyInfo property = type.GetProperty(Name, BindingFlags.Instance | BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
+
       if (property == null)
-        throw new NomadVariableException("Could not find property on type '{0}' matching '{1}' '{2}'", objType.FullName, this.GetType().Name, Name);
+        throw new NomadVariableException("Could not find property on type '{0}' matching '{1}' '{2}'", type.FullName, this.GetType().Name, Name);
 
       if (property.GetSetMethod(true) == null)
-        throw new PropertySetterUnavailableException("Could not find set method on property '{0}' on type '{1}'", Name, objType.FullName);
+        throw new PropertySetterUnavailableException("Could not find set method on property '{0}' on type '{1}'", Name, type.FullName);
 
       property.SetValue(obj, Value, null);
     }

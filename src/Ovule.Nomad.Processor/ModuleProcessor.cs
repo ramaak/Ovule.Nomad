@@ -34,7 +34,7 @@ namespace Ovule.Nomad.Processor
     /// <param name="nomadClientType"></param>
     /// <param name="assemblyDef"></param>
     /// <returns></returns>
-    public NomadModuleInfo Process(ModuleDefinition moduleDef, Type nomadClientType, AssemblyDefinition assemblyDef)
+    public NomadModuleInfo Process(ModuleDefinition moduleDef, bool isPartOfNomadAssembly, Type nomadClientType, AssemblyDefinition assemblyDef)
     {
       NomadModuleInfo nomadModuleInfo = null;
       if (moduleDef.HasTypes)
@@ -49,7 +49,7 @@ namespace Ovule.Nomad.Processor
           {
             if (typeDef.HasMethods)
             {
-              NomadTypeInfo nomadTypeInfo = typeProcessor.Process(typeDef, nomadClientType);
+              NomadTypeInfo nomadTypeInfo = typeProcessor.Process(typeDef, isPartOfNomadAssembly, nomadClientType);
               if (nomadTypeInfo != null && nomadTypeInfo.AccessedMethods != null && nomadTypeInfo.AccessedMethods.Count > 0)
               {
                 if (nomadModuleInfo == null)

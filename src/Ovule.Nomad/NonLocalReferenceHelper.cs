@@ -39,14 +39,13 @@ namespace Ovule.Nomad
     /// <summary>
     /// Updates an objects fields and properties so that they match what's in 'nonLocalVariables'
     /// </summary>
-    /// <param name="actOn">The object to update fields/properties on</param>
+    /// <param name="actOn">The object to update fields/properties on.  Should be mull when working with static members</param>
+    /// <param name="actOnType">The type to update fields/properties on</param>
     /// <param name="nonLocalVariables">The collection of fields/properties to update</param>
-    public static void SetNonLocalVariables(object actOn, IList<IVariable> nonLocalVariables)
+    public static void SetNonLocalVariables(object actOn, Type actOnType, IList<IVariable> nonLocalVariables)
     {
-      if (actOn == null)
-        throw new NullReferenceException("'actOn' is null");
-
-      Type actOnType = actOn.GetType();
+      if (actOnType == null)
+        throw new NullReferenceException("'actOnType' is null");
 
       _logger.LogInfo("SetupNonLocalVariables: Type '{0}', non-local variable count '{1}' ", actOnType.FullName, nonLocalVariables == null ? "0" : nonLocalVariables.Count.ToString());
 
@@ -57,7 +56,10 @@ namespace Ovule.Nomad
           try
           {
             _logger.LogInfo("SetupNonLocalVariables: Setting variable '{0}' on type '{1}' to '{2}", variable.Name, actOnType.FullName, variable.Value == null ? "null" : variable.Value);
-            variable.CopyTo(actOn);
+            if (actOn != null)
+              variable.CopyTo(actOn);
+            else
+              variable.CopyTo(actOnType);
           }
           catch (PropertySetterUnavailableException ex)
           {
@@ -89,7 +91,10 @@ namespace Ovule.Nomad
             _logger.LogError("RecoverNonLocalVariables: A non-local Variable has not been initialised for type '{0}'", actOnType.FullName);
 
           _logger.LogInfo("RecoverNonLocalVariables: Recovering value of variable '{0}' on type '{1}'", variable.Name, actOnType.FullName);
-          variable.CopyFrom(actOn);
+          if (actOn != null)
+            variable.CopyFrom(actOn);
+          else
+            variable.CopyFrom(actOnType);
         }
       }
     }

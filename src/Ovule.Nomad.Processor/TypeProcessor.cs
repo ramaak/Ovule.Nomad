@@ -34,7 +34,7 @@ namespace Ovule.Nomad.Processor
     /// <param name="typeDef"></param>
     /// <param name="assemblyDef"></param>
     /// <returns></returns>
-    public NomadTypeInfo Process(TypeDefinition typeDef, Type nomadClientType)
+    public NomadTypeInfo Process(TypeDefinition typeDef, bool isPartOfNomadAssembly, Type nomadClientType)
     {
       this.ThrowIfArgumentIsNull(() => nomadClientType);
       this.ThrowIfArgumentIsNull(() => typeDef);
@@ -42,8 +42,18 @@ namespace Ovule.Nomad.Processor
       NomadTypeInfo typeInfo = null;
       if (typeDef.HasMethods)
       {
-        IEnumerable<MethodDefinition> methDefs = typeDef.Methods.Where(m => m.HasCustomAttributes &&
-          m.CustomAttributes.FirstOrDefault(ca => ca.AttributeType.FullName == typeof(NomadMethodAttribute).FullName) != null);
+        bool isPartOfNomadType = isPartOfNomadAssembly;
+        if(!isPartOfNomadAssembly)
+        {
+          isPartOfNomadType = typeDef.HasCustomAttributes && 
+            typeDef.CustomAttributes.FirstOrDefault(a => a.AttributeType.FullName == typeof(NomadTypeAttribute).FullName) != default(CustomAttribute);
+        }
+        IEnumerable<MethodDefinition> methDefs = null;
+        if (isPartOfNomadType)
+          methDefs = typeDef.Methods;
+        else
+          methDefs = typeDef.Methods.Where(m => m.HasCustomAttributes &&
+            m.CustomAttributes.FirstOrDefault(ca => ca.AttributeType.FullName == typeof(NomadMethodAttribute).FullName) != default(CustomAttribute));
 
         if (methDefs != null && methDefs.Any())
         {
@@ -51,16 +61,18 @@ namespace Ovule.Nomad.Processor
           for (int i = 0; i < methDefCount; i++)
           {
             MethodDefinition methDef = methDefs.ElementAt(i);
-            CustomAttribute nomMethattrib = methDef.CustomAttributes.FirstOrDefault(ca => ca.AttributeType.FullName == typeof(NomadMethodAttribute).FullName);
-            IMethodProcessor methodProcessor = GetMethodProcessor(nomMethattrib);
+            //don't worry about constructors, they'll get called on client anyway and all members will be transferred
+            if (!methDef.IsConstructor) 
+            {
+              IMethodProcessor methodProcessor = GetMethodProcessor(methDef, isPartOfNomadType);
+              NomadMethodInfo nomadMethInfo = methodProcessor.Process(methDef, nomadClientType);
+              if (nomadMethInfo == null)
+                throw new NomadTypeProcessorException("Failed to process Nomadic method '{0}' from type '{1}'", methDef.FullName, typeDef.FullName);
 
-            NomadMethodInfo nomadMethInfo = methodProcessor.Process(methDef, nomadClientType);
-            if (nomadMethInfo == null)
-              throw new NomadTypeProcessorException("Failed to process Nomadic method '{0}' from type '{1}'", methDef.FullName, typeDef.FullName);
-
-            if (typeInfo == null)
-              typeInfo = new NomadTypeInfo(typeDef);
-            typeInfo.AddAccessedMethod(nomadMethInfo);
+              if (typeInfo == null)
+                typeInfo = new NomadTypeInfo(typeDef);
+              typeInfo.AddAccessedMethod(nomadMethInfo);
+            }
           }
         }
       }
@@ -72,36 +84,44 @@ namespace Ovule.Nomad.Processor
     #region Methods
 
     /// <summary>
-    /// Return the right type of IMethodProcessor for a method defined with attribute 'attribute'
+    /// Return the right type of IMethodProcessor for a method defined with attribute 'attribute'.
+    /// If the method should not be processed return null.
     /// </summary>
     /// <param name="attribute"></param>
     /// <returns></returns>
-    private IMethodProcessor GetMethodProcessor(CustomAttribute attribute)
+    private IMethodProcessor GetMethodProcessor(MethodDefinition methDef, bool isPartOfNomadType)
     {
-      this.ThrowIfArgumentIsNull(() => attribute);
+      this.ThrowIfArgumentIsNull(() => methDef);
 
-      if (attribute.AttributeType.FullName == typeof(NomadMethodAttribute).FullName)
+      NomadMethodType? methType = null;
+      bool runInMainThread = false;
+      if (isPartOfNomadType)
+        methType = NomadMethodType.Normal;
+      else
       {
-        NomadMethodType methType = NomadMethodType.Normal;
-        bool runInMainThread = false;
-        if (attribute.HasConstructorArguments)
+        CustomAttribute attribute = methDef.CustomAttributes.FirstOrDefault(ca => ca.AttributeType.FullName == typeof(NomadMethodAttribute).FullName);
+        if (attribute.AttributeType.FullName == typeof(NomadMethodAttribute).FullName)
         {
-          foreach (CustomAttributeArgument arg in attribute.ConstructorArguments)
+          methType = NomadMethodType.Normal;
+          if (attribute.HasConstructorArguments)
           {
-            if (arg.Type.FullName == typeof(NomadMethodType).FullName)
-              methType = (NomadMethodType)arg.Value;
-            else if (arg.Type.FullName == typeof(bool).FullName)
-              runInMainThread = (bool)arg.Value;
+            foreach (CustomAttributeArgument arg in attribute.ConstructorArguments)
+            {
+              if (arg.Type.FullName == typeof(NomadMethodType).FullName)
+                methType = (NomadMethodType)arg.Value;
+              else if (arg.Type.FullName == typeof(bool).FullName)
+                runInMainThread = (bool)arg.Value;
+            }
           }
         }
-
-        if (methType == NomadMethodType.Normal)
-          return new NomadMethodProcessor(runInMainThread);
-        if (methType == NomadMethodType.Repeat)
-          return new RepeatMethodProcessor(runInMainThread);
-        if (methType == NomadMethodType.Relay)
-          return new RelayMethodProcessor(runInMainThread);
       }
+      if (methType == NomadMethodType.Normal)
+        return new NomadMethodProcessor(runInMainThread);
+      if (methType == NomadMethodType.Repeat)
+        return new RepeatMethodProcessor(runInMainThread);
+      if (methType == NomadMethodType.Relay)
+        return new RelayMethodProcessor(runInMainThread);
+
       return null;
     }
 

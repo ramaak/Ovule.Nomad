@@ -43,10 +43,12 @@
     <Compile Include="FieldVariable.cs" />
     <Compile Include="IShippingContainer.cs" />
     <Compile Include="IVariable.cs" />
+    <Compile Include="NomadAssemblyAttribute.cs" />
     <Compile Include="NomadException.cs" />
     <Compile Include="NomadMethodResult.cs" />
     <Compile Include="NomadIgnoreAttribute.cs" />
     <Compile Include="NomadPropertyVariableSetterUnavailableException.cs" />
+    <Compile Include="NomadTypeAttribute.cs" />
     <Compile Include="NonLocalReferenceHelper.cs" />
     <Compile Include="ParameterVariable.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

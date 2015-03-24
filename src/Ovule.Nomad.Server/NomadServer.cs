@@ -122,7 +122,7 @@ namespace Ovule.Nomad.Server
       object executionObject = GetExecutionObject(assemblyFileName, typeFullName);
 
       if (methodType == NomadMethodType.Normal)
-        NonLocalReferenceHelper.SetNonLocalVariables(executionObject, nonLocalVariables);
+        NonLocalReferenceHelper.SetNonLocalVariables(executionObject, executionObject.GetType(), nonLocalVariables);
 
       object methodResult = ExecuteMethod(executionObject.GetType(), methodType == NomadMethodType.Normal ? executionObject : null, methodName, parameters);
 
@@ -237,7 +237,7 @@ namespace Ovule.Nomad.Server
     /// <param name="assemblyFileName"></param>
     /// <param name="typeFullName"></param>
     /// <returns></returns>
-    private object GetExecutionObject(string assemblyFileName, string typeFullName)
+    protected object GetExecutionObject(string assemblyFileName, string typeFullName)
     {
       Type executionType = GetExecutionType(assemblyFileName, typeFullName);
 
@@ -328,7 +328,7 @@ namespace Ovule.Nomad.Server
     /// <param name="resolveFrom"></param>
     /// <param name="assemblyName"></param>
     /// <returns></returns>
-    private Assembly TryResolveAssembly(Assembly resolveFrom, string assemblyName)
+    protected Assembly TryResolveAssembly(Assembly resolveFrom, string assemblyName)
     {
       try
       {

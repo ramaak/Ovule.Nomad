@@ -26,7 +26,28 @@ namespace Ovule.Nomad
     string TypeFullName { get; set; }
     object Value { get; set; }
 
+    /// <summary>
+    /// Copy the variable value from instance variable on object
+    /// </summary>
+    /// <param name="obj"></param>
     void CopyFrom(object obj);
+
+    /// <summary>
+    /// Copy the variable value from static variable on type
+    /// </summary>
+    /// <param name="type"></param>
+    void CopyFrom(Type type);
+
+    /// <summary>
+    /// Copy the variable value to instance variable on object
+    /// </summary>
+    /// <param name="obj"></param>
     void CopyTo(object obj);
+
+    /// <summary>
+    /// Copy the variable value to static variable on type
+    /// </summary>
+    /// <param name="type"></param>
+    void CopyTo(Type type);
   }
 }

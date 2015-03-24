@@ -160,31 +160,7 @@ namespace Ovule.Nomad.Client
         this.ThrowIfArgumentIsNull(() => actOn);
         this.ThrowIfArgumentIsNoValueString(() => methodName);
 
-        Type actOnType = actOn.GetType();
-
-        _logger.LogInfo("ExecuteServiceCall: Transferring control of execution to external process for nomadic method '{0}.{1}'", actOn.GetType().FullName, methodName);
-
-        string actOnAsmPath = actOnType.Assembly.CodeBase.Replace("file:///", "");
-
-        IList<IVariable> nonLocalVaraibles = null;
-        //currently it only makes sense to work on non-locals for normal exeuction methods. Relay methods don't impact upon the client 
-        //and Repeat methods will have an impact anyway as they will run on the client.
-        if (methodType == NomadMethodType.Normal)
-          nonLocalVaraibles = GetCurrentNonLocalVariables(actOn, actOnAsmPath, methodName);
-
-        //determine if the method be executed on the default server or if one was chosen at runtime
-        Uri endpoint = GetEndpointDefinitionParameter(parameters);
-
-        //hand over to subclass so it can do dirty work of issuing call to server
-        NomadMethodResult result = IssueServerRequest(endpoint, methodType, runInMainThread, Path.GetFileName(actOnAsmPath), actOnType.FullName, methodName, parameters, nonLocalVaraibles);
-
-        _logger.LogInfo("ExecuteServiceCall: Received response from Nomad server for method '{0}.{1}'", actOnType.FullName, methodName);
-
-        //if the method type isn't NomadMethodType.Normal then result.NonLocalVariables should be null anyway.
-        if (methodType == NomadMethodType.Normal && result.NonLocalVariables != null)
-          NonLocalReferenceHelper.SetNonLocalVariables(actOn, result.NonLocalVariables);
-
-        return new ExecuteServiceCallResult(true, result.ReturnValue);
+        return DoExecuteServiceCall(methodType, runInMainThread, actOn, actOn.GetType(), methodName, parameters);
       }
       catch (Exception ex)
       {
@@ -196,7 +172,6 @@ namespace Ovule.Nomad.Client
     /// <summary>
     /// Same as 'ExecuteServiceCall' however for static methods.
     /// 
-    /// TODO: This probably isn't needed now.
     /// </summary>
     /// <param name="methodType"></param>
     /// <param name="runInMainThread"></param>
@@ -214,22 +189,50 @@ namespace Ovule.Nomad.Client
         this.ThrowIfArgumentIsNull(() => actOnType);
         this.ThrowIfArgumentIsNoValueString(() => methodName);
 
-        _logger.LogInfo("ExecuteStaticServiceCall: Transferring control of execution to external process for nomadic method '{0}.{1}'", actOnType.FullName, methodName);
-
-        string actOnAsmPath = actOnType.Assembly.CodeBase.Replace("file:///", "");
-
-        Uri endpoint = GetEndpointDefinitionParameter(parameters);
-        NomadMethodResult result = IssueServerRequest(endpoint, methodType, runInMainThread, Path.GetFileName(actOnAsmPath), actOnType.FullName, methodName, parameters, null);
-
-        _logger.LogInfo("ExecuteStaticServiceCall: Received response from Nomad server for method '{0}.{1}'", actOnType.FullName, methodName);
-
-        return new ExecuteServiceCallResult(true, result.ReturnValue);
+        return DoExecuteServiceCall(methodType, runInMainThread, null, actOnType, methodName, parameters);
       }
       catch (Exception ex)
       {
         _logger.LogException(ex);
         throw;
       }
+    }
+
+    /// <summary>
+    /// For static methods 'actOn' should be null
+    /// </summary>
+    /// <param name="methodType"></param>
+    /// <param name="runInMainThread"></param>
+    /// <param name="actOn">should be null when processing static methods</param>
+    /// <param name="actOnType"></param>
+    /// <param name="methodName"></param>
+    /// <param name="parameters"></param>
+    /// <returns></returns>
+    private ExecuteServiceCallResult DoExecuteServiceCall(NomadMethodType methodType, bool runInMainThread, object actOn, Type actOnType, string methodName, IList<ParameterVariable> parameters)
+    {
+      _logger.LogInfo("DoExecuteServiceCall: Transferring control of execution to external process for nomadic method '{0}.{1}'", actOnType.FullName, methodName);
+
+      string actOnAsmPath = actOnType.Assembly.CodeBase.Replace("file:///", "");
+
+      IList<IVariable> nonLocalVaraibles = null;
+      //currently it only makes sense to work on non-locals for normal exeuction methods. Relay methods don't impact upon the client 
+      //and Repeat methods will have an impact anyway as they will run on the client.
+      if (methodType == NomadMethodType.Normal)
+        nonLocalVaraibles = GetCurrentNonLocalVariables(actOn, actOnType, actOnAsmPath, methodName);
+
+      //determine if the method be executed on the default server or if one was chosen at runtime
+      Uri endpoint = GetEndpointDefinitionParameter(parameters);
+
+      //hand over to subclass so it can do dirty work of issuing call to server
+      NomadMethodResult result = IssueServerRequest(endpoint, methodType, runInMainThread, Path.GetFileName(actOnAsmPath), actOnType.FullName, methodName, parameters, nonLocalVaraibles);
+
+      _logger.LogInfo("DoExecuteServiceCall: Received response from Nomad server for method '{0}.{1}'", actOnType.FullName, methodName);
+
+      //if the method type isn't NomadMethodType.Normal then result.NonLocalVariables should be null anyway.
+      if (methodType == NomadMethodType.Normal && result.NonLocalVariables != null)
+        NonLocalReferenceHelper.SetNonLocalVariables(actOn, actOnType, result.NonLocalVariables);
+
+      return new ExecuteServiceCallResult(true, result.ReturnValue);
     }
 
     #endregion INomadClient
@@ -267,21 +270,23 @@ namespace Ovule.Nomad.Client
     /// <summary>
     /// Retuns a collection of variables which are within reach of 'methodName', the methods it calls, the methods they call, etc.  
     /// This collection contains not just the variable names but also their values.
+    /// 
+    /// For static methods 'actOn' should be null
     /// </summary>
-    /// <param name="actOn"></param>
+    /// <param name="actOn">null when processing static methods</param>
+    /// <param name="actOnType"></param>
     /// <param name="actOnAsmPath"></param>
     /// <param name="methodName"></param>
     /// <returns></returns>
-    protected IList<IVariable> GetCurrentNonLocalVariables(object actOn, string actOnAsmPath, string methodName)
+    protected IList<IVariable> GetCurrentNonLocalVariables(object actOn, Type actOnType, string actOnAsmPath, string methodName)
     {
-      this.ThrowIfArgumentIsNull(() => actOn);
+      this.ThrowIfArgumentIsNull(() => actOnType);
       this.ThrowIfArgumentIsNoValueString(() => actOnAsmPath);
       this.ThrowIfArgumentIsNoValueString(() => methodName);
 
-      _logger.LogInfo("GetCurrentNonLocalVariables: Acting on type '{0}', Method '{1}' from assembly at path '{2}'", actOn.GetType().FullName, methodName, actOnAsmPath);
+      _logger.LogInfo("GetCurrentNonLocalVariables: Acting on type '{0}', Method '{1}' from assembly at path '{2}'", actOnType.FullName, methodName, actOnAsmPath);
 
       IList<IVariable> result = new List<IVariable>();
-      Type actOnType = actOn.GetType();
 
       ModuleDefinition modDef = ModuleDefinition.ReadModule(actOnAsmPath);
       TypeDefinition typeDef = modDef.Types.FirstOrDefault(td => td.FullName == actOnType.FullName);
@@ -289,7 +294,7 @@ namespace Ovule.Nomad.Client
       {
         MethodDefinition methDef = typeDef.Methods.FirstOrDefault(m => m.Name == methodName);
         if (methDef != null && methDef.Body != null)
-          result = DiscoverCurrentNonLocalReferences(actOn, methDef);
+          result = DiscoverCurrentNonLocalReferences(actOn, actOnType, methDef);
       }
       return result;
     }
@@ -297,24 +302,27 @@ namespace Ovule.Nomad.Client
     /// <summary>
     /// Does the heavy lifting for GetCurrentNonLocalVariables(...).
     /// 
+    /// For static methods 'actOn' should be null
+    /// 
     /// TODO: Considerable scope for perfomance improvement here by caching the reference graph + tidy up code
+    /// 
     /// </summary>
-    /// <param name="actOn"></param>
+    /// <param name="actOn">null when processing static methods</param>
+    /// <param name="actOnType"></param>
     /// <param name="methDef"></param>
     /// <param name="nonLocals"></param>
     /// <returns></returns>
-    protected IList<IVariable> DiscoverCurrentNonLocalReferences(object actOn, MethodDefinition methDef, IDictionary<string, IVariable> nonLocals = null)
+    protected IList<IVariable> DiscoverCurrentNonLocalReferences(object actOn, Type actOnType, MethodDefinition methDef, IDictionary<string, IVariable> nonLocals = null)
     {
-      this.ThrowIfArgumentIsNull(() => actOn);
+      this.ThrowIfArgumentIsNull(() => actOnType);
       this.ThrowIfArgumentIsNull(() => methDef);
 
-      Type actOnType = actOn.GetType();
       if (nonLocals == null)
         nonLocals = new Dictionary<string, IVariable>();
 
       if (methDef != null && methDef.Body != null)
       {
-        _logger.LogInfo("DiscoverCurrentNonLocalReferences: Discovering non local references in method '{0}' from type '{1}'", methDef.FullName, methDef.DeclaringType.FullName);
+        _logger.LogInfo("DiscoverCurrentNonLocalReferences: Discovering non local references in method '{0}' from type '{1}'.  Method is static = '{2}", methDef.FullName, methDef.DeclaringType.FullName, actOn == null);
 
         foreach (Instruction instruction in methDef.Body.Instructions)
         {
@@ -368,7 +376,7 @@ namespace Ovule.Nomad.Client
             else if (callMethDef.DeclaringType.Equals(methDef.DeclaringType))
             {
               _logger.LogInfo("DiscoverCurrentNonLocalReferences: Method '{0}' is called from '{1}' moving on to discover references within called method", callMethDef.FullName, methDef.FullName);
-              IList<IVariable> innerRefs = DiscoverCurrentNonLocalReferences(actOn, callMethDef, nonLocals);
+              IList<IVariable> innerRefs = DiscoverCurrentNonLocalReferences(actOn, actOnType, callMethDef, nonLocals);
               if (innerRefs != null && innerRefs.Any())
               {
                 foreach (IVariable innerRef in innerRefs)

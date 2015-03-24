@@ -19,6 +19,7 @@ along with Nomad.  If not, see <http://www.gnu.org/licenses/>.
 using Mono.Cecil;
 using Ovule.Nomad.Client;
 using System;
+using System.Linq;
 
 namespace Ovule.Nomad.Processor
 {
@@ -41,7 +42,7 @@ namespace Ovule.Nomad.Processor
       ModuleProcessor moduleProcessor = new ModuleProcessor();
       foreach (ModuleDefinition moduleDef in assemblyDef.Modules)
       {
-        NomadModuleInfo moduleInfo = moduleProcessor.Process(moduleDef, nomadClientType, assemblyDef);
+        NomadModuleInfo moduleInfo = moduleProcessor.Process(moduleDef, nomadAssemblyInfo.IsDefinedAsNomadAssembly, nomadClientType, assemblyDef);
         if (moduleInfo != null)
           nomadAssemblyInfo.AddAccessedModule(moduleInfo);
       }
