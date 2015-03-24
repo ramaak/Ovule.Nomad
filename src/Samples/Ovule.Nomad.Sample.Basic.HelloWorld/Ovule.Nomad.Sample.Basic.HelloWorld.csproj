@@ -34,7 +34,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Ovule.Nomad">
-      <HintPath>..\..\Ovule.Nomad\Ovule.Nomad\bin\Debug\Ovule.Nomad.dll</HintPath>
+      <HintPath>..\lib\Ovule.Nomad.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
