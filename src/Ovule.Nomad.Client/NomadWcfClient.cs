@@ -141,7 +141,6 @@ namespace Ovule.Nomad.Client
         channel = GetChannel(endpoint);
 
         NomadMethodResult result = null;
-
         if (KnownTypeLocator.KnownTypes == null || !KnownTypeLocator.KnownTypes.Any())
         {
           if (!_haveWarnedAboutBinarySerialiser)
@@ -149,6 +148,7 @@ namespace Ovule.Nomad.Client
             _logger.LogWarning("IssueServerRequest: No KnownTypes found so cannot use DataContractSerialiser. Falling back to the BinaryFormatter which may have a negative impact on application performance.");
             _haveWarnedAboutBinarySerialiser = true;
           }
+
           Serialiser serialiser = new Serialiser();
           IList<string> serialisedParameters = serialiser.SerialiseToBase64(parameters);
           IList<string> serialisedNonLocalVariables = serialiser.SerialiseToBase64(nonLocalVariables);

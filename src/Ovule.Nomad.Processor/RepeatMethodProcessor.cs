@@ -79,7 +79,7 @@ namespace Ovule.Nomad.Processor
       methodDef.DeclaringType.Methods.Add(newClientMethDef);
       if (methodDef.HasParameters)
       {
-        foreach (ParameterDefinition clientMethParamDef in methodDef.Parameters)
+        foreach (ParameterDefinition clientMethParamDef in methodDef.Parameters.OrderBy(p=>p.Index))
         {
           ParameterDefinition newParamDef = new ParameterDefinition(clientMethParamDef.Name, clientMethParamDef.Attributes, clientMethParamDef.ParameterType);
           newClientMethDef.Parameters.Add(newParamDef);
@@ -87,6 +87,16 @@ namespace Ovule.Nomad.Processor
           callParamsInstructions.Add(ilProcessor.Create(OpCodes.Ldarg, newParamDef));
         }
       }
+      if(methodDef.Body.HasVariables)
+      {
+        foreach(VariableDefinition clientMethVarDef in methodDef.Body.Variables.OrderBy(v=>v.Index))
+        {
+          VariableDefinition newVarDef = new VariableDefinition(clientMethVarDef.Name, clientMethVarDef.VariableType);
+          newClientMethDef.Body.Variables.Add(newVarDef);
+        }
+        methodDef.Body.Variables.Clear();
+      }
+
       ParameterDefinition isRepeatCallParamDef = InjectIsRepeatCallParameter(newClientMethDef);
       foreach (Instruction instruction in methodDef.Body.Instructions)
         ilProcessor.Append(instruction);
@@ -107,6 +117,7 @@ namespace Ovule.Nomad.Processor
       Instruction firstInstruction = newClientMethDef.Body.Instructions.First();
       if (firstInstruction != null)
       {
+        
         ilProcessor.InsertBefore(firstInstruction, ilProcessor.Create(OpCodes.Ldarg, isRepeatCallParamDef));
         ilProcessor.InsertBefore(firstInstruction, ilProcessor.Create(OpCodes.Ldstr, Constants.IsRepeatMethodCallTrueValue));
         ilProcessor.InsertBefore(firstInstruction, ilProcessor.Create(OpCodes.Callvirt,
@@ -114,7 +125,7 @@ namespace Ovule.Nomad.Processor
         ilProcessor.InsertBefore(firstInstruction, ilProcessor.Create(OpCodes.Brtrue, firstInstruction));
 
         VariableDefinition paramsVarDef = InjectNomadServiceCallParameters(newClientMethDef, ilProcessor, firstInstruction);
-
+        
         //call new NomadClient().ExecuteRepeatCall(Type,string,IList<ParameterVariable>)
         MethodInfo getTypeFromHandle = typeof(Type).GetMethod("GetTypeFromHandle", new Type[] { typeof(System.RuntimeTypeHandle) });
         ilProcessor.InsertBefore(firstInstruction, ilProcessor.Create(OpCodes.Newobj, newClientMethDef.Module.Import(nomadClientType.GetConstructor(System.Type.EmptyTypes))));
@@ -123,15 +134,20 @@ namespace Ovule.Nomad.Processor
         ilProcessor.InsertBefore(firstInstruction, ilProcessor.Create(OpCodes.Ldtoken, newClientMethDef.DeclaringType));
         ilProcessor.InsertBefore(firstInstruction, ilProcessor.Create(OpCodes.Call, newClientMethDef.Module.Import(getTypeFromHandle)));
         ilProcessor.InsertBefore(firstInstruction, ilProcessor.Create(OpCodes.Ldstr, newClientMethDef.Name));
+        
         if (paramsVarDef != null)
           ilProcessor.InsertBefore(firstInstruction, ilProcessor.Create(OpCodes.Ldloc, paramsVarDef));
         else
           ilProcessor.InsertBefore(firstInstruction, ilProcessor.Create(OpCodes.Ldnull));
+        
         ilProcessor.InsertBefore(firstInstruction, ilProcessor.Create(OpCodes.Callvirt, newClientMethDef.Module.Import(nomadClientType.GetMethod("ExecuteStaticServiceCall",
           new[] { typeof(NomadMethodType), typeof(bool), typeof(Type), typeof(string), typeof(IList<ParameterVariable>) }))));
+        
+        //TODO: Just for now don't care about what came back from the server, just pop the result off the stack so original method code can be executed
+        //now on the client (since this is a "repeat" call method)
+        ilProcessor.InsertBefore(firstInstruction, ilProcessor.Create(OpCodes.Pop));
 
         isCallInjected = true;
-
       }
       if (!isCallInjected)
         throw new NomadException(string.Format("Failed to insert nomad service call into client method called '{0}", methodDef.FullName));

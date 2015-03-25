@@ -24,14 +24,14 @@ namespace Ovule.Nomad.Processor
 {
   public class Program
   {
-    private const string ServerPath = @"C:\Users\adinucci\Documents\Visual Studio 2013\Projects\Ovule.Nomad\Ovule.Nomad.Server.Stock\bin\Debug";
+    private const string ServerPath = @"C:\Users\adinucci\Documents\GitHub\Ovule.Nomad\src\Ovule.Nomad.Server.Stock\bin\Debug";
 
     //private static Type NomadClientType = typeof(NomadWcfClient);
     ////private static Type NomadClientType = typeof(NomadEmailClient);
     //private const string ClientPath = @"C:\Users\adinucci\Documents\Visual Studio 2013\Projects\Ovule.Nomad\Ovule.Nomad.Sample\bin\Debug";
 
     private static Type NomadClientType = typeof(NomadWcfClient);
-    private const string ClientPath = @"C:\Users\adinucci\Documents\Visual Studio 2013\Projects\Ovule.Nomad.Sample\Ovule.Nomad.Sample.SemiRealistic.Client\bin\Debug";
+    private const string ClientPath = @"C:\Users\adinucci\Documents\GitHub\Ovule.Nomad\src\Samples\Ovule.Nomad.Sample.Chat\bin\Debug";
     
 
     public static void Main(string[] args)

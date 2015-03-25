@@ -83,6 +83,15 @@ namespace Ovule.Nomad.Processor
           callParamsInstructions.Add(ilProcessor.Create(OpCodes.Ldarg, newParamDef));
         }
       }
+      if (methodDef.Body.HasVariables)
+      {
+        foreach (VariableDefinition clientMethVarDef in methodDef.Body.Variables.OrderBy(v => v.Index))
+        {
+          VariableDefinition newVarDef = new VariableDefinition(clientMethVarDef.Name, clientMethVarDef.VariableType);
+          newClientMethDef.Body.Variables.Add(newVarDef);
+        }
+        methodDef.Body.Variables.Clear();
+      }
       ParameterDefinition isRelayCallParamDef = InjectIsRelayCallParameter(newClientMethDef);
       foreach (Instruction instruction in methodDef.Body.Instructions)
         ilProcessor.Append(instruction);
@@ -126,6 +135,11 @@ namespace Ovule.Nomad.Processor
 
         ilProcessor.InsertBefore(firstInstruction, ilProcessor.Create(OpCodes.Callvirt, newClientMethDef.Module.Import(clientType.GetMethod("ExecuteStaticServiceCall",
           new[] { typeof(NomadMethodType), typeof(bool), typeof(Type), typeof(string), typeof(IList<ParameterVariable>) }))));
+
+        //TODO: Just for now don't care about what came back from the server, just pop the result off the stack so original method code can be executed
+        //now on the client (since this is a "repeat" call method)
+        ilProcessor.InsertBefore(firstInstruction, ilProcessor.Create(OpCodes.Pop));
+
         ilProcessor.InsertBefore(firstInstruction, ilProcessor.Create(OpCodes.Ret));
         isCallInjected = true;
       }
