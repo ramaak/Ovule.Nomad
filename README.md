@@ -1,4 +1,4 @@
 # Ovule.Nomad
 Distributed application development can't get any easier.
 
-This is a new project a more details will be published very soon.
+Please go to the "dev" branch for further details.  This project hasn't been formally released yet.
