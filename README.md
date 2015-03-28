@@ -47,7 +47,7 @@ Timescales cannot be given however it should not be too long before version 1.5 
 This is the current preview release and includes all features described in the documentation and demonstrated in the samples.  It is not to be considered stable so should only be used for experimentation.
 
 #Release v1.0 – (ETA: fairly soon)
-A complete review of the existing codebase is to be conducted and extensively testing.  Some improvements to the Processor GUI will be made however there will be no more major features.
+A complete review of the existing codebase is to be conducted and extensively tested (MS .Net and Mono).  Some improvements to the Processor GUI will be made however there will be no more major features.
 
 #Release v1.1
 The processor backend and GUI will be enhanced so that users have a visual representation of the assemblies, types and methods that make their application.  Through the GUI they will be able to choose which aspects to make nomadic.  This will remove the need for the current [NomadMethod], [NomadType] and [NomadAssembly] attributes so developers won’t be required to reference any Nomad assemblies.  The big benefit here is that Nomad will impose no requirements on developers and is therefore purely a tool.  This also offers the opportunity to use Nomad with programs where the source code is unavailable – it will be up to the developer to ensure they are not breaking any contracts/laws by doing this!
