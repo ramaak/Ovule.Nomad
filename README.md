@@ -13,6 +13,26 @@ Nomad comes with a practically flat learning curve and there is very little need
 
 If you feel you could help contribute towards this project in any way please get in touch.  Extensive testing is required in order to take the project to the v1.0 stage and the more black-box testers there are the merrier ;)    
 
+#Videos
+
+The following (very rushed) videos have been made available.  Hopefully they give you a reasonable idea of this projects potential.  More to follow in due course.
+
+1: First Steps - http://www.screencast.com/t/tHcp85Zj5e
+
+2: Hello World - http://www.screencast.com/t/4I0yQyjY
+
+3: Member Variables - http://www.screencast.com/t/FNBVKgd13WRS
+
+4: Nomad Assemblies - http://www.screencast.com/t/mmCDT1uQ
+
+5: P2P Part 1 - http://www.screencast.com/t/xey3ihdJe
+
+   P2P Part 2 - http://www.screencast.com/t/d8jwGnfxOx
+   
+   P2P Part 3 - http://www.screencast.com/t/25ib4VoaYIc8 
+   (Please note, that unless you update the configuration files - as per WCF specification - you will only be able to send files under 64KB)
+
+
 #Simplicity
 Most introductions to programming topics start off with an example of some form of “Hello World”.  To create a standalone console application that prints “Hello World” you can write a few short lines of code and be finished in seconds.  To create a networked version of “Hello World” you will need to write at least 10’s of lines of code, create multiple classes and/or interfaces and also potentially spend time on configuration.  Rather than taking seconds your application may now have taken the best part of an hour.  Also since it’s much more complex it’s harder to understand and there’s an increased risk of bugs.
 
