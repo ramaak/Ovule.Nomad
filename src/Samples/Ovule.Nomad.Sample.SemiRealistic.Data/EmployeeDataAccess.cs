@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Ovule.Nomad.Sample.SemiRealistic.Server.Data
+namespace Ovule.Nomad.Sample.SemiRealistic.Data
 {
   public class EmployeeDataAccess
   {

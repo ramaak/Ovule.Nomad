@@ -2,7 +2,7 @@
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 
-namespace Ovule.Nomad.Sample.SemiRealistic.Server.Data
+namespace Ovule.Nomad.Sample.SemiRealistic.Data
 {
   public class Serialiser
   {

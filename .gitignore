@@ -67,3 +67,5 @@
 /src/Test.Ovule.Nomad.Wcf/bin/Debug
 /src/Test.Ovule.Nomad.Wcf/obj/Debug
 *.user
+/src/Samples/Ovule.Nomad.Sample.SemiRealistic.Data/bin/Debug
+/src/Samples/Ovule.Nomad.Sample.SemiRealistic.Data/obj/Debug

@@ -2,7 +2,7 @@
 using Ovule.Nomad.Sample.SemiRealistic.Entity;
 using System;
 
-namespace Ovule.Nomad.Sample.SemiRealistic.Server
+namespace Ovule.Nomad.Sample.SemiRealistic.Business
 {
   public class EmployeeService
   {

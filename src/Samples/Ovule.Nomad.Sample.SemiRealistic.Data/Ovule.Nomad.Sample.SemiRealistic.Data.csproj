@@ -4,17 +4,15 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{7F55F964-0186-4560-A102-BA8A226EF3BC}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <ProjectGuid>{5E218D0F-3B71-4B30-B853-424A66BDAA0C}</ProjectGuid>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Ovule.Nomad.Sample.SemiRealistic.Client</RootNamespace>
-    <AssemblyName>Ovule.Nomad.Sample.SemiRealistic.Client</AssemblyName>
+    <RootNamespace>Ovule.Nomad.Sample.SemiRealistic.Data</RootNamespace>
+    <AssemblyName>Ovule.Nomad.Sample.SemiRealistic.Data</AssemblyName>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -24,7 +22,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -38,17 +35,11 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Program.cs" />
+    <Compile Include="EmployeeDataAccess.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Serialiser.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Ovule.Nomad.Sample.SemiRealistic.Business\Ovule.Nomad.Sample.SemiRealistic.Business.csproj">
-      <Project>{2d68890b-6838-4e87-b72b-71af8fb5c6c8}</Project>
-      <Name>Ovule.Nomad.Sample.SemiRealistic.Business</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Ovule.Nomad.Sample.SemiRealistic.Entity\Ovule.Nomad.Sample.SemiRealistic.Entity.csproj">
       <Project>{0670fe70-c12b-4174-ad85-f7f5453c3bbb}</Project>
       <Name>Ovule.Nomad.Sample.SemiRealistic.Entity</Name>

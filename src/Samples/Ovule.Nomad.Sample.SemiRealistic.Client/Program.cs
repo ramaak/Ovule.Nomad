@@ -1,12 +1,12 @@
 ﻿using Ovule.Nomad.Sample.SemiRealistic.Entity;
-using Ovule.Nomad.Sample.SemiRealistic.Server;
+using Ovule.Nomad.Sample.SemiRealistic.Business;
 using System;
 
 namespace Ovule.Nomad.Sample.SemiRealistic.Client
 {
   class Program
   {
-    //see [assembly:NomadAssembly] in Ovule.Nomad.Sample.SemiRealistic.Server.AssemblyInfo
+    //see [assembly:NomadAssembly] in Ovule.Nomad.Sample.SemiRealistic.Business.AssemblyInfo
     static void Main(string[] args)
     {
       char userInput = 'z';
