@@ -26,15 +26,17 @@ namespace Ovule.Diagnostics
   /// <summary>
   /// A concrete implementation of BufferingLogger which flushes buffered content to plain text files.
   /// </summary>
-  public class BufferingTextFileLogger: BufferingLogger
+  public class BufferingTextFileLogger : BufferingLogger
   {
     #region Properties/Fields
 
-    private const string LogFileExtension = ".txt";
+    public const string LogFileExtension = ".txt";
 
     private static object _fileWriteLock = new object();
 
     protected string LogDirectory { get; private set; }
+
+    public string LogFilePath { get { return Path.Combine(LogDirectory, LogName + LogFileExtension); } }
 
     #endregion Properties/Fields
 
@@ -44,7 +46,7 @@ namespace Ovule.Diagnostics
       : base(logName, minLogLevel, bufferFlushSeconds)
     {
       this.ThrowIfArgumentIsNoValueString(() => logDirectory);
-      
+
       LogDirectory = logDirectory;
     }
 
@@ -71,7 +73,7 @@ namespace Ovule.Diagnostics
 
       if (!Directory.Exists(logDirectoryString))
         Directory.CreateDirectory(logDirectoryString);
-        //throw new DirectoryNotFoundException(string.Format("The application 'LoggerDirectory' points to a path that doesn't exist.  Please ensure the path is correct and if so create the directory."));
+      //throw new DirectoryNotFoundException(string.Format("The application 'LoggerDirectory' points to a path that doesn't exist.  Please ensure the path is correct and if so create the directory."));
 
       if (!string.IsNullOrWhiteSpace(minLogLevelString))
       {
@@ -95,10 +97,10 @@ namespace Ovule.Diagnostics
     {
       if (MessageBuffer == null)
         throw new NullReferenceException("MessageBuffer is null");
-      if(MessageBuffer.Any())
+      if (MessageBuffer.Any())
       {
         string output = "";
-        foreach(ILogMessage message in MessageBuffer)
+        foreach (ILogMessage message in MessageBuffer)
           output += string.Format("{0}:\t[{1}]\t{2}{3}\r\n", message.MessageType.ToString(), message.CreatedAt.ToString(), message.Message,
             string.IsNullOrWhiteSpace(message.AdditionalInformation) ? "" : "\r\n" + message.AdditionalInformation);
 
@@ -106,7 +108,7 @@ namespace Ovule.Diagnostics
         {
           if (!Directory.Exists(LogDirectory))
             Directory.CreateDirectory(LogDirectory);
-          File.AppendAllText(Path.Combine(LogDirectory, LogName + LogFileExtension), output);
+          File.AppendAllText(LogFilePath, output);
         }
       }
     }
