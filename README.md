@@ -11,7 +11,7 @@ Be aware that Nomad is currently available only for preview purposes.  There is 
 
 Nomad comes with a practically flat learning curve and there is very little needed in the way of instructions.  However, many developers will rightly want to understand what is going on under the hood and so documentation is needed.  Information will be added to the Wiki over the coming weeks in preparation for the first formal release.
 
-If you feel you could help contribute towards this project in any way please get in touch!
+If you feel you could help contribute towards this project in any way please get in touch.  Extensive testing is required in order to take the project to the v1.0 stage and the more black-box testers there are the merrier ;)    
 
 #Simplicity
 Most introductions to programming topics start off with an example of some form of “Hello World”.  To create a standalone console application that prints “Hello World” you can write a few short lines of code and be finished in seconds.  To create a networked version of “Hello World” you will need to write at least 10’s of lines of code, create multiple classes and/or interfaces and also potentially spend time on configuration.  Rather than taking seconds your application may now have taken the best part of an hour.  Also since it’s much more complex it’s harder to understand and there’s an increased risk of bugs.
@@ -37,7 +37,7 @@ There is a massive number use cases where Nomad could be used to simplify system
 3.	Peer-to-peer networking: Basic P2P features are already built in, see the Chat sample application.  Also see the Roadmap for hints on how this could be taken as far as having decentralised “processing marts” where nodes can bid for rights to execute operations on behalf of other nodes.
 
 #Release Roadmap
-What follows is the planned release roadmap – which is admittedly very ambitious given the level of resources (i.e. free time and developers) available.  
+What follows is the planned release roadmap – which is admittedly very ambitious given the level of resources (i.e. currently a single developer with very limited free time) available.  
 
 The fundamental aim  of this project is that writing distributed software should be as easy as it is to write standalone software.  None of the features developed for any Nomad release will affect the way you write software.  A certain amount of configuration (outwith application code) may be required for certain features but simplicity will always be the goal.  
 
@@ -47,10 +47,10 @@ Timescales cannot be given however it should not be too long before version 1.5 
 This is the current preview release and includes all features described in the documentation and demonstrated in the samples.  It is not to be considered stable so should only be used for experimentation.
 
 #Release v1.0 – (ETA: fairly soon)
-A complete review of the existing codebase is to be conducted and extensively tested (MS .Net and Mono).  Some improvements to the Processor GUI will be made however there will be no more major features.
+A complete review of the existing codebase is needed, unit testing to be caught up and extensive regression testing (with MS .Net and Mono).  Some improvements to the Processor GUI are planned made however no plans for new features.
 
 #Release v1.1
-The processor backend and GUI will be enhanced so that users have a visual representation of the assemblies, types and methods that make their application.  Through the GUI they will be able to choose which aspects to make nomadic.  This will remove the need for the current [NomadMethod], [NomadType] and [NomadAssembly] attributes so developers won’t be required to reference any Nomad assemblies.  The big benefit here is that Nomad will impose no requirements on developers and is therefore purely a tool.  This also offers the opportunity to use Nomad with programs where the source code is unavailable – it will be up to the developer to ensure they are not breaking any contracts/laws by doing this!
+The processor backend and GUI will be enhanced so that users have a visual representation of the assemblies, types and methods that their application consists of.  Through the GUI they will be able to choose which aspects to make nomadic.  This will remove the need for the current [NomadMethod], [NomadType] and [NomadAssembly] attributes so developers won’t be required to reference any Nomad assemblies.  The big benefit here is that Nomad will impose no requirements on developers and is therefore purely a tool.  This also offers the opportunity to use Nomad with programs where the source code is unavailable – it will be up to the developer to ensure they are not breaking any contracts/laws by doing this!
 
 #Release v1.2
 The ability to pass parameters to nomadic methods by reference and to have updates to these references reflected on the client is to be completed.  Also the option to make the client aware of events that fire in nomadic methods will be provided.
@@ -74,3 +74,14 @@ Just one opportunity this functionality allows is for super-cheap-super-computin
 
 #Release v4.0
 Let’s wait and see!!
+
+#3rd Party Components Nomad Uses
+
+Mono.Cecil - https://github.com/jbevain/cecil
+
+A great library! If Mono.Cecil wasn't arount it would have easily taken twice as long to get this project to where it is.
+
+AE.Net.Mail - https://github.com/andyedinborough/aenetmail
+
+This isn't a core component of Nomad but is used with an implementation of a Nomad client and server which communicate over email.  This implementation is more for fun and a demonstration that Nomad is flexible enough cope with unusual demands.
+
