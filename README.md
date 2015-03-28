@@ -37,7 +37,7 @@ There is a massive number use cases where Nomad could be used to simplify system
 3.	Peer-to-peer networking: Basic P2P features are already built in, see the Chat sample application.  Also see the Roadmap for hints on how this could be taken as far as having decentralised “processing marts” where nodes can bid for rights to execute operations on behalf of other nodes.
 
 #Release Roadmap
-What follows is the planned release roadmap – which is admittedly very ambitious given the level of resources (i.e. free time and developers) available.  
+What follows is the planned release roadmap – which is admittedly very ambitious given the level of resources (i.e. currently a single developer with very limited free time) available.  
 
 The fundamental aim  of this project is that writing distributed software should be as easy as it is to write standalone software.  None of the features developed for any Nomad release will affect the way you write software.  A certain amount of configuration (outwith application code) may be required for certain features but simplicity will always be the goal.  
 
