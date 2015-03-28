@@ -77,9 +77,11 @@ Let’s wait and see!!
 
 #3rd Party Components Nomad Uses
 
-Mono.Cecil - https://github.com/jbevain/cecil 
+Mono.Cecil - https://github.com/jbevain/cecil
+
 A great library! If Mono.Cecil wasn't arount it would have easily taken twice as long to get this project to where it is.
 
 AE.Net.Mail - https://github.com/andyedinborough/aenetmail
-This isn't really core component of Nomad but is used with an implementation of a Nomad client and server which communicates over email.  The implementation is more meant for fun and a demonstration that Nomad is flexible enough cope with unusual demands.
+
+This isn't a core component of Nomad but is used with an implementation of a Nomad client and server which communicate over email.  This implementation is more for fun and a demonstration that Nomad is flexible enough cope with unusual demands.
 
