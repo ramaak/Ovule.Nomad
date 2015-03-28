@@ -30,7 +30,7 @@ namespace Ovule.Diagnostics
   {
     #region Properties/Fields
 
-    public const string LogFileExtension = ".txt";
+    private const string LogFileExtension = ".txt";
 
     private static object _fileWriteLock = new object();
 

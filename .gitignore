@@ -66,3 +66,4 @@
 /src/Test.Ovule.Nomad.Server.Email/obj/Debug
 /src/Test.Ovule.Nomad.Wcf/bin/Debug
 /src/Test.Ovule.Nomad.Wcf/obj/Debug
+*.user
