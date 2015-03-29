@@ -178,50 +178,87 @@ namespace Ovule.Nomad.Processor
     }
 
     /// <summary>
-    /// The assembly that's being created for the server most likely depends on other assemblies which are not part of the 
-    /// .Net framework.  We need these on the server but don't really want to copy loads of DLL's over.  Create an embedded 
-    /// resources for each dependency and store them within the actual servere assembly.  The Nomad server know's how to extract
-    /// and load these when needed.
-    /// 
-    /// By having only a single file here it'll also make things easier down the road when we allow for dynamic execution of 
-    /// nomadic code.  Obviously security concerns need to be addressed before this is attempted.
+    /// Return all dependencies of 'assemblyDef'
     /// </summary>
     /// <param name="clientAssemblyDir"></param>
-    /// <param name="serverAssemblyDef"></param>
-    private void CreateEmbeddedResourcesFromReferences(string clientAssemblyDir, AssemblyDefinition serverAssemblyDef)
+    /// <param name="assemblyDef"></param>
+    /// <param name="knownDependencies"></param>
+    /// <returns></returns>
+    private IEnumerable<AssemblyDefinition> GetDependencies(string clientAssemblyDir, AssemblyDefinition assemblyDef, IDictionary<string, AssemblyDefinition> knownDependencies = null)
     {
-      foreach (ModuleDefinition modDef in serverAssemblyDef.Modules)
+      if (knownDependencies == null)
+        knownDependencies = new Dictionary<string, AssemblyDefinition>();
+      foreach (ModuleDefinition modDef in assemblyDef.Modules)
       {
         if (modDef.HasAssemblyReferences)
         {
           foreach (AssemblyNameReference asmNameRef in modDef.AssemblyReferences.ToArray())
           {
-            //ignore assemblies that are part of the .Net framework, these will already be available on server.
-            //TODO: Find a better way - at least move out into config so no need to recompile when new libs come along
-            //TODO: At the minute just looking in app dir, need to probe like CLR binder
-            if (!(asmNameRef.IsWindowsRuntime || asmNameRef.Name.ToLower() == "mscorlib" ||
-              asmNameRef.Name.ToLower() == "system" || asmNameRef.Name.ToLower().StartsWith("system.") ||
-              asmNameRef.Name.ToLower() == "presentationframework" || asmNameRef.Name.ToLower() == "presentationcore" ||
-              asmNameRef.Name.ToLower() == "windowsbase"))
-              modDef.Resources.Add(CreateResourceFromAssembly(AssemblyUtils.GetAssemblyFilename(clientAssemblyDir, asmNameRef.Name)));
+            if (!knownDependencies.ContainsKey(asmNameRef.FullName))
+            {
+              //ignore assemblies that are part of the .Net framework, these will already be available on server.
+              //TODO: Find a better way - at least move out into config so no need to recompile when new libs come along
+              //TODO: At the minute just looking in app dir, need to probe like CLR binder
+              if (!(asmNameRef.IsWindowsRuntime || asmNameRef.Name.ToLower() == "mscorlib" ||
+                asmNameRef.Name.ToLower() == "system" || asmNameRef.Name.ToLower().StartsWith("system.") ||
+                asmNameRef.Name.ToLower() == "presentationframework" || asmNameRef.Name.ToLower() == "presentationcore" ||
+                asmNameRef.Name.ToLower() == "windowsbase"))
+              {
+                string dependentAsmPath = AssemblyUtils.GetAssemblyFilename(clientAssemblyDir, asmNameRef.Name, true);
+                AssemblyDefinition dependentAsmDef = AssemblyDefinition.ReadAssembly(dependentAsmPath);
+
+                knownDependencies.Add(dependentAsmDef.FullName, dependentAsmDef);
+                //this will just fill up knownDependencies so don't care about result
+                GetDependencies(clientAssemblyDir, dependentAsmDef, knownDependencies);
+              }
+            }
           }
+        }
+      }
+      return knownDependencies.Values;
+    }
+
+    /// <summary>
+    /// The assembly that's being created for the server most likely depends on other assemblies which are not part of the 
+    /// .Net framework.  We need these on the server but don't really want to copy loads of DLL's over.  Create an embedded 
+    /// resources for each dependency and store them within the actual server assembly.  The Nomad server know's how to extract
+    /// and load these when needed.
+    /// 
+    /// By having only a single file here it'll also make things easier down the road when we allow for dynamic execution of 
+    /// nomadic code.  Obviously security concerns need to be addressed before this is attempted.
+    /// 
+    /// Pruning isn't done yet, as a result this method will inflate the assmebly (potentially dramatically).
+    /// </summary>
+    /// <param name="clientAssemblyDir"></param>
+    /// <param name="serverAssemblyDef"></param>
+    private void CreateEmbeddedResourcesFromReferences(string clientAssemblyDir, AssemblyDefinition serverAssemblyDef)
+    {
+      IEnumerable<AssemblyDefinition> dependencies = GetDependencies(clientAssemblyDir, serverAssemblyDef);
+      if(dependencies.Any())
+      {
+        foreach(AssemblyDefinition dependency in dependencies)
+        {
+          string dependentAsmPath = AssemblyUtils.GetAssemblyFilename(clientAssemblyDir, dependency.Name, true);
+          AssemblyDefinition dependentAsmDef = AssemblyDefinition.ReadAssembly(dependentAsmPath);
+          //TODO: There may be multiple modules in the assembly
+          serverAssemblyDef.MainModule.Resources.Add(CreateResourceFromAssembly(dependentAsmPath, dependentAsmDef));
         }
       }
     }
 
     /// <summary>
-    /// Creates an EmbeddedResource to contain file assembly at path 'assemblyPath'
+    /// Creates an EmbeddedResource to contain assembly on path 'assemblyPath'
     /// </summary>
     /// <param name="directory"></param>
-    /// <param name="assemblyName"></param>
+    /// <param name="assemblyPath"></param>
+    /// <param name="assemblyDef"></param>
     /// <returns></returns>
-    private EmbeddedResource CreateResourceFromAssembly(string assemblyPath)
+    private EmbeddedResource CreateResourceFromAssembly(string assemblyPath, AssemblyDefinition assemblyDef)
     {
-      AssemblyDefinition asmDef = AssemblyDefinition.ReadAssembly(assemblyPath);
       byte[] asmBytes = File.ReadAllBytes(assemblyPath);
       if (asmBytes == null || asmBytes.Length == 0)
         throw new FileLoadException(string.Format("Failed to read assembly file '{0}'", assemblyPath));
-      return new EmbeddedResource(string.Format("{0}{1}", AssemblyEmbeddedAsResourcePrefix, asmDef.FullName), ManifestResourceAttributes.Public, asmBytes);
+      return new EmbeddedResource(string.Format("{0}{1}", AssemblyEmbeddedAsResourcePrefix, assemblyDef.FullName), ManifestResourceAttributes.Public, asmBytes);
     }
 
     private void ConfigureRepeatAndRelayMethods(NomadAssemblyInfo assemblyInfo, AssemblyDefinition serverAssemblyDef)

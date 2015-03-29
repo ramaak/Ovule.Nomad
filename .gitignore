@@ -69,3 +69,6 @@
 *.user
 /src/Samples/Ovule.Nomad.Sample.SemiRealistic.Data/bin/Debug
 /src/Samples/Ovule.Nomad.Sample.SemiRealistic.Data/obj/Debug
+/src/Samples/Ovule.Nomad.Sample.Chat/bin/Chat2
+/src/Samples/Ovule.Nomad.Sample.SemiRealistic.Business/bin/Debug
+/src/Samples/Ovule.Nomad.Sample.SemiRealistic.Business/obj/Debug
