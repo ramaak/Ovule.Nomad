@@ -32,7 +32,7 @@ The following (very rushed) videos have been made available.  Hopefully they giv
    P2P Part 3 - http://www.screencast.com/t/25ib4VoaYIc8 
    (Please note, that unless you update the configuration files - as per WCF specification - you will only be able to send files under 64KB)
    
-6: Chatty and Chunky - http://www.screencast.com/t/soszkreoO
+6: Chatty and Chunky - http://www.screencast.com/t/ml8hWxWjpB0R
 
 
 #Simplicity
