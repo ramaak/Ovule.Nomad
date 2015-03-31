@@ -1,4 +1,4 @@
-# Ovule.Nomad
+# Ovule.Nomad [.Net]
 There are a huge number of reasons to want to develop distributed applications but development productivity is not one of them.  The plumbing required and constraints placed on architects and developers make it an arduous, costly, complex and error prone task.  As a result no organisation would ever choose to develop a distributed application unless there was a compelling reason to do so.
 
 Nomad allows you to develop distributed software in exactly the same way you develop standalone applications.  Application code is cleaner and leaner, easier to write, understand and maintain.  In addition to this Nomad can demonstrably increase overall system performance while at the same time allowing for code reuse maximisation.
