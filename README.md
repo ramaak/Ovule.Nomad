@@ -17,22 +17,22 @@ If you feel you could help contribute towards this project in any way please get
 
 The following (very rushed) videos have been made available.  Hopefully they give you a reasonable idea of this projects potential.  More to follow in due course.
 
-1: First Steps - http://www.screencast.com/t/tHcp85Zj5e
+1: First Steps - https://youtu.be/T0_OzOTGGVc
 
-2: Hello World - http://www.screencast.com/t/4I0yQyjY
+2: Hello World - https://youtu.be/w6gn6q2Rpeg
 
-3: Member Variables - http://www.screencast.com/t/FNBVKgd13WRS
+3: Member Variables - https://youtu.be/EKuMy4-OJWM
 
-4: Nomad Assemblies - http://www.screencast.com/t/mmCDT1uQ
+4: Nomad Assemblies - https://youtu.be/SnNpfZM3Lxo
 
-5: P2P Part 1 - http://www.screencast.com/t/xey3ihdJe
+5: P2P Part 1 - https://youtu.be/7mUOyC2YB1c
 
-   P2P Part 2 - http://www.screencast.com/t/d8jwGnfxOx
+   P2P Part 2 - https://youtu.be/5rg8CdcZdCE
    
-   P2P Part 3 - http://www.screencast.com/t/25ib4VoaYIc8 
+   P2P Part 3 - https://youtu.be/bF0GFtpQkUw
    (Please note, that unless you update the configuration files - as per WCF specification - you will only be able to send files under 64KB)
    
-6: Chatty and Chunky - http://www.screencast.com/t/ml8hWxWjpB0R
+6: Chatty and Chunky - https://youtu.be/8WiLAJ3ufj4
 
 
 #Simplicity
