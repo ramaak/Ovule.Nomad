@@ -1,13 +1,13 @@
 # Ovule.Nomad [.Net]
-There are a huge number of reasons to want to develop distributed applications but development productivity is not one of them.  The plumbing required and constraints placed on architects and developers make it an arduous, costly, complex and error prone task.  As a result no organisation would ever choose to develop a distributed application unless there was a compelling reason to do so.
+With Nomad distributed application code is cleaner and leaner, easier to write, understand and maintain.  In addition to this Nomad can demonstrably increase overall distributed application performance while at the same time allowing for code reuse maximisation.
 
-Nomad allows you to develop distributed software in exactly the same way you develop standalone applications.  Application code is cleaner and leaner, easier to write, understand and maintain.  In addition to this Nomad can demonstrably increase overall system performance while at the same time allowing for code reuse maximisation.
+Nomad is not a framework, it is a tool which enforces no constraints on developers.  In the most basic use-case you can convert a single executable into a distributed application (see the Hello World and P2P videos below).  More typically you will develop well-structured applications consisting of a number of assemblies and choose which parts (assemblies, types, methods) you want to execute remotely (see Nomad Assemblies video below).  
 
-Nomad is not a framework.  It is a tool that processes compiled .Net programs and converts them to efficient distributed applications.   
+With Nomad you develop applications as if they were standalone and then pass them through the Nomad Processor.  It create a server for you from the aspects you choose to execute remotely and a client configured to communicate with it.  In addition to this, since you develop the application as if it were standalone it's possible to fall-back into standalone mode should network connectivity fail, making it perfectly suited for occasionally-connected applications.  If the methods you want to execute remotely access class level properties or fields this is no problem, Nomad works these things out for you keeping your data consistent.
 
-Please take a look at the demonstration videos to see it in action.
+The overall number of network calls can be dramatically reduced with Nomad, with much less effort than with traditional means of distributed systems development while at the same time keeping your code base very lean.  If you find a client side method is making a number of trips to the server you can very easily make that method run on the server too, meaning only a single network transaction is required (see the "Chatty and Chunky" video link below).  You'll never have to craft non-functional code purely to reduce the number of server trips. 
 
-Be aware that Nomad is currently available only for preview purposes.  There is still work to be done before it reaches version 1.0 and therefore shouldn’t be used in applications intended for end-users. 
+Please be aware that Nomad is currently available only for preview purposes.  There is still work to be done before it reaches version 1.0 and therefore shouldn’t be used in applications intended for end-users. 
 
 Nomad comes with a practically flat learning curve and there is very little needed in the way of instructions.  However, many developers will rightly want to understand what is going on under the hood and so documentation is needed.  Information will be added to the Wiki over the coming weeks in preparation for the first formal release.
 
