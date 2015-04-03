@@ -13,6 +13,10 @@ Nomad comes with a practically flat learning curve and there is very little need
 
 If you feel you could help contribute towards this project in any way please get in touch.  Extensive testing is required in order to take the project to the v1.0 stage and the more black-box testers there are the merrier ;)    
 
+#Forum
+
+http://ost.io/@tony-dinucci/Ovule.Nomad
+
 #Videos
 
 The following (very rushed) videos have been made available.  Hopefully they give you a reasonable idea of this projects potential.  More to follow in due course.
