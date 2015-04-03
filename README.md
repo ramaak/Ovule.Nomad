@@ -50,7 +50,7 @@ If you develop a “chunky” system you can potentially enjoy a high level of p
 With Nomad you don’t have to make a trade.  Code can be written according to the best OO practices, allowing for maximum reuse while at the same time network transactions can be kept to the minimum.
 
 #Potential 
-There is a massive number use cases where Nomad could be used to simplify systems development.  Here are just a few:
+There are a massive number use cases where Nomad could be used to simplify systems development.  Here are just a few:
 
 1.	Super-Cheap Super-Computing: There are already frameworks in existence for distributed execution, they all however require developers to adhere to a framework and therefore come with considerable cost (at least in terms of time to learn and being locked into the framework afterwards). Nomad is not a framework and distributed execution can be acheived easily at at an extremely low cost.  In addition to this, there will be opportunities such as building a farm of Raspberry Pi’s when Windows 10 arrives on that platform.
 
