@@ -1,9 +1,9 @@
 # Ovule.Nomad [.Net]
 With Nomad distributed application code is cleaner and leaner, easier to write, understand and maintain.  In addition to this Nomad can demonstrably increase overall distributed application performance while at the same time allowing for code reuse maximisation.
 
-Nomad is not a framework, it is a tool which enforces no constraints on developers.  In the most basic use-case you can convert a single executable into a distributed application (see the Hello World and P2P videos below).  More typically you will develop well-structured applications consisting of a number of assemblies and choose which parts (assemblies, types, methods) you want to execute remotely (see Nomad Assemblies video below).  
+Nomad is not a framework, it is a tool which enforces no constraints on developers.  In the most basic use-case you can convert a single executable with a single type into a distributed application (see the Hello World and P2P videos below).  More typically you will develop well-structured applications consisting of a number of assemblies and choose which parts (assemblies, types, methods) you want to execute remotely (see Nomad Assemblies video below).  
 
-With Nomad you develop applications as if they were standalone and then pass them through the Nomad Processor.  It create a server for you from the aspects you choose to execute remotely and a client configured to communicate with it.  In addition to this, since you develop the application as if it were standalone it's possible to fall-back into standalone mode should network connectivity fail, making it perfectly suited for occasionally-connected applications.  If the methods you want to execute remotely access class level properties or fields this is no problem, Nomad works these things out for you keeping your data consistent.
+With Nomad you develop applications as if they were standalone and then pass them through the Nomad Processor.  It creates a server for you from the aspects you choose to execute remotely and a client configured to communicate with it.  In addition to this, since you develop the application as if it were standalone it's possible to fall-back into standalone mode should network connectivity fail, making it perfectly suited for occasionally-connected applications.  If the methods you want to execute remotely access class level properties or fields this is no problem, Nomad works these things out for you keeping your data consistent.
 
 The overall number of network calls can be dramatically reduced with Nomad, with much less effort than with traditional means of distributed systems development while at the same time keeping your code base very lean.  If you find a client side method is making a number of trips to the server you can very easily make that method run on the server too, meaning only a single network transaction is required (see the "Chatty and Chunky" video link below).  You'll never have to craft non-functional code purely to reduce the number of server trips. 
 
@@ -13,6 +13,34 @@ Nomad comes with a practically flat learning curve and there is very little need
 
 If you feel you could help contribute towards this project in any way please get in touch.  Extensive testing is required in order to take the project to the v1.0 stage and the more black-box testers there are the merrier ;)    
 
+#What's so different to RPC, Web Services, etc?
+
+Nomad does have similarities to RPC technologies like .Net Remoting and web services technologies like WCF.  In reality it is both...and neither.  It's even easier to use than Remoting, you have the security and performance of WCF and also it can be extended upon even more, meaning you’re not limited to protocols like HTTP, TCP, Named Pipes and UDP.   
+
+Nomad approaches things from a slightly different angle to the norm.  You are not constrained to just having purely remote types, you can have partially remote types too.  Why would you want to do this?  Well, with typical means of distributed programming if you want to achieve optimum performance you will have to create remote methods which serve no real purpose other than to help reduce the number of network calls.  The typical way to combat the performance penalty of a client making lots of calls to a server is to create new methods on the server that perform more work per call.  This remote code you're writing serves no functional purpose and is quite possibly only useful very specific situations.  You're remote interface is now becoming unnecessarily bloated and complex.  With Nomad you don't have this concern, you just choose to execute the client method on the server.  All code is clean and written just the way you want it but optimum performance is achieved.  If your client side method calls other methods or accesses class level variables this is no problem, Nomad takes care of this for you.  It will always appear to your process as if the code executed completely on the client. 
+
+You don't have to make the decision to use Nomad up front.  An assembly, type or method that you wrote yesterday may not have benefitted from the features offered by Nomad then.  If however the story's different today then just decorate the assembly, type or method with a Nomad attribute and you’re done.  Once the attribute is in place the rest is handled for you.
+
+#Hello World
+
+This is as simple as it get's!  Download the samples from the respository and view the videos for more details.
+
+```csharp 
+class Program
+{
+  static void Main(string[] args)
+  {
+    SayHello();
+  }
+
+  //because of this attribute the method will execute remotely
+  [NomadMethod] 
+  static void SayHello()
+  {
+    Console.WriteLine("Hello from process '{0}'!", Process.GetCurrentProcess().ProcessName);
+  }
+}
+```
 #Forum
 
 http://ost.io/@tony-dinucci/Ovule.Nomad
