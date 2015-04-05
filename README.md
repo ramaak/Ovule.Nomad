@@ -71,7 +71,7 @@ The following (very rushed) videos have been made available.  Hopefully they giv
 #Potential 
 There is huge potential for Nomad above what's already been described.  Here are just a few use cases:
 
-1.	Super-Cheap Super-Computing: There are already frameworks in existence for distributed execution, they all however require developers to adhere to a framework and therefore come with considerable cost (at least in terms of time to learn and being locked into the framework afterwards). Nomad is not a framework and distributed execution can be acheived easily at at an extremely low cost.  In addition to this, there will be opportunities such as building a farm of Raspberry Pi’s when Windows 10 arrives on that platform.
+1.	Super-Cheap Super-Computing: There are already frameworks in existence for distributed execution, they all however require developers to adhere to a framework and therefore come with considerable cost (at least in terms of time to learn and being locked into the framework afterwards). Nomad is not a framework and distributed execution can be acheived easily at at an extremely low cost.  In addition to this, there will be opportunities such as building a farm of Raspberry Pi’s.
 
 2.	Mobile Frameworks: It is possible for the client to execute nomadic methods itself if it chooses to, instead of asking a server to execute them.  This means mobile frameworks could be developed quite easily.  For example, code can be written to write to a form of data store that can live on the client and server.  If the client is online then it executes the method on the server, if it goes offline it executes the method on itself.  Obviously data synchronisation would have to be implemented separately.
 
