@@ -1,3 +1,5 @@
+Follow on Twitter: [@OvuleNomad](https://twitter.com/OvuleNomad)
+
 # Ovule.Nomad [.Net]
 With Nomad distributed application code is cleaner and leaner, easier to write, understand and maintain.  In addition to this Nomad can demonstrably increase overall distributed application performance while at the same time allowing for code reuse maximisation.
 
