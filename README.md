@@ -1,3 +1,8 @@
+# News
+
+2015-04-11
+After collating feedback on the project (which was the main purpose of publishing the preview) some fairly big changes are now underway.  Rather than being a tool Nomad will become a framework, which will give developers more flexibility and also make them feel more in control.  To enjoy the main benefits of this change the roadmap is going to change a bit.  What was planned for release v1.1 is no longer required but features for release v1.5 and v2.0 will be brought forward to the first release.  Things aren't too far from here as it stands.  This page will be updated soon to reflect the changes and a paper is planned.
+
 Follow on Twitter: [@OvuleNomad](https://twitter.com/OvuleNomad)
 
 # Ovule.Nomad [.Net]
