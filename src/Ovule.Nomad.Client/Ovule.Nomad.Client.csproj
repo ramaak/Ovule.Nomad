@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Ovule.Nomad.Client</RootNamespace>
     <AssemblyName>Ovule.Nomad.Client</AssemblyName>
-    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -53,15 +53,22 @@
     <Reference Include="System.ServiceModel" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ExecuteServiceCallResult.cs" />
+    <Compile Include="BasicRemoteMethodExecuter.cs" />
     <Compile Include="INomadClient.cs" />
+    <Compile Include="IRemoteMethodExecuter.cs" />
     <Compile Include="NomadClient.cs" />
     <Compile Include="NomadClientException.cs" />
     <Compile Include="NomadClientInitialisationException.cs" />
     <Compile Include="NomadWcfClient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RemoteMethodExecuter.cs" />
+    <Compile Include="RemoteMethodNotExecutedException.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Ovule.Nomad.Discovery\Ovule.Nomad.Discovery.csproj">
+      <Project>{11f8d21c-9134-4aef-a785-24da5e6eca0a}</Project>
+      <Name>Ovule.Nomad.Discovery</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Ovule.Nomad.Wcf\Ovule.Nomad.Wcf.csproj">
       <Project>{af56b8f0-d5ce-456c-a1c6-b08c50479c47}</Project>
       <Name>Ovule.Nomad.Wcf</Name>

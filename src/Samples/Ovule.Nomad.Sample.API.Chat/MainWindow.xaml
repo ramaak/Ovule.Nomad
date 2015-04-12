@@ -1,0 +1,84 @@
+﻿<Window x:Class="Ovule.Nomad.Sample.API.Chat.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:Ovule.Nomad.Sample.API.Chat"
+        Title="Chat Client">
+  
+  <Grid>
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="*"/>
+      <ColumnDefinition Width="4*"/>
+    </Grid.ColumnDefinitions>
+
+    <ListBox Name="lstSignedInUsers" Margin="5" ItemsSource="{Binding SignedInUsers}" SelectedItem="{Binding SelectedUser}">
+      <ListBox.ItemTemplate>
+        <DataTemplate>
+          <TextBlock Margin="5" Text="{Binding}"/>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+    
+    <Grid Grid.Column="1">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="auto"/>
+        <RowDefinition Height="4*"/>
+        <RowDefinition Height="*"/>
+        <RowDefinition Height="*"/>
+      </Grid.RowDefinitions>
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="auto"/>
+        <ColumnDefinition Width="*"/>
+      </Grid.ColumnDefinitions>
+
+      <TextBlock Margin="5" FontSize="16" Text="Your Id"/>
+      <TextBlock Margin="5" Grid.Column="1" FontSize="16" FontWeight="Bold" Text="{Binding LocalUser.Id}"/>
+
+      <TextBlock Grid.Row="1" Margin="5" VerticalAlignment="Top" Text="History"/>
+      <ScrollViewer Grid.Row="1" Grid.Column="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <ListBox Margin="5" ItemsSource="{x:Static local:MessageService.ChatMessages}">
+          <ListBox.ItemTemplate>
+            <DataTemplate>
+              <Grid>
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="auto" SharedSizeGroup="ChatMessageUserNameCol"/>
+                  <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Margin="5" VerticalAlignment="Top" FontWeight="Bold" Text="{Binding From.Id}"/>
+                <TextBlock Margin="5" Grid.Column="1" Text="{Binding Message}" TextWrapping="WrapWithOverflow"/>
+              </Grid>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </ScrollViewer>
+
+      <TextBlock Grid.Row="2" Margin="5" VerticalAlignment="Top" Text="Your Message"/>
+      <Grid Grid.Row="2" Grid.Column="1">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="65"/>
+        </Grid.ColumnDefinitions>
+        <TextBox Margin="5" AcceptsReturn="True" TextWrapping="WrapWithOverflow" VerticalScrollBarVisibility="Auto" Text="{Binding WorkingMessageValue}"/>
+        <Button Grid.Column="1" Margin="5" Content="Send" Click="Send_Click"/>
+      </Grid>
+      
+      <TextBlock Grid.Row="3" Margin="5" VerticalAlignment="Top" Text="Received Files"/>
+      <Grid Grid.Row="3" Grid.Column="1">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="65"/>
+        </Grid.ColumnDefinitions>
+        <ListBox Name="lstReceivedFiles" Margin="5" ItemsSource="{x:Static local:MessageService.ReceviedFiles}" MouseDoubleClick="ReceivedFiles_MouseDoubleClick">
+          <ListBox.ItemTemplate>
+            <DataTemplate>
+              <TextBlock Margin="5" Foreground="Red" Text="{Binding Name}"/>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+        <Button Grid.Column="1" Margin="5" Content="Send File" Click="SendFile_Click"/>
+      </Grid>
+
+      
+
+    </Grid>
+  </Grid>
+</Window>

@@ -42,6 +42,8 @@ namespace Ovule.Nomad.Client
     /// <param name="methodName">The method on 'actOn' that should be executed, but on the Nomad Server</param>
     /// <param name="parameters">The parameters to pass to method 'methodName' when it's executed</param>
     /// <returns></returns>
+    ExecuteServiceCallResult ExecuteServiceCall(byte[] rawAssembly, Uri endpoint, NomadMethodType methodType, bool runInMainThread, object actOn, string methodName, IList<ParameterVariable> parameters);
+    ExecuteServiceCallResult ExecuteServiceCall(Uri endpoint, NomadMethodType methodType, bool runInMainThread, object actOn, string methodName, IList<ParameterVariable> parameters);
     ExecuteServiceCallResult ExecuteServiceCall(NomadMethodType methodType, bool runInMainThread, object actOn, string methodName, IList<ParameterVariable> parameters);
 
     /// <summary>
@@ -55,6 +57,8 @@ namespace Ovule.Nomad.Client
     /// <param name="methodName">The method on 'actOn' that should be executed, but on the Nomad Server</param>
     /// <param name="parameters">The parameters to pass to method 'methodName' when it's executed</param>
     /// <returns></returns>
+    ExecuteServiceCallResult ExecuteStaticServiceCall(byte[] rawAssembly, Uri endpoint, NomadMethodType methodType, bool runInMainThread, Type actOnType, string methodName, IList<ParameterVariable> parameters);
+    ExecuteServiceCallResult ExecuteStaticServiceCall(Uri endpoint, NomadMethodType methodType, bool runInMainThread, Type actOnType, string methodName, IList<ParameterVariable> parameters);
     ExecuteServiceCallResult ExecuteStaticServiceCall(NomadMethodType methodType, bool runInMainThread, Type actOnType, string methodName, IList<ParameterVariable> parameters);
   }
 }

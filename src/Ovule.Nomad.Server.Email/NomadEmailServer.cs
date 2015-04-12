@@ -110,10 +110,11 @@ namespace Ovule.Nomad.Server.Email
             throw new InvalidOperationException(string.Format("Expected to read boolean value but read '{0}'", parts[1]));
 
           string assemblyFilename = parts[2];
-          string typeFullName = parts[3];
-          string methodName = parts[4];
-          string serialisedParameters = parts[5];
-          string serialisedNonLocalVariables = parts[6];
+          string assemblyFileHash = parts[3];
+          string typeFullName = parts[4];
+          string methodName = parts[5];
+          string serialisedParameters = parts[6];
+          string serialisedNonLocalVariables = parts[7];
 
           Serialiser serialiser = new Serialiser();
           IList<ParameterVariable> parameters = null;
@@ -123,7 +124,7 @@ namespace Ovule.Nomad.Server.Email
           if (!string.IsNullOrWhiteSpace(serialisedNonLocalVariables))
             nonLocalVariables = serialiser.DeserialiseBase64<IList<IVariable>>(serialisedNonLocalVariables);
 
-          NomadMethodResult result = base.ExecuteNomadMethod(methodType, runInMainThread, assemblyFilename, typeFullName, methodName, parameters, nonLocalVariables);
+          NomadMethodResult result = base.ExecuteNomadMethod(methodType, runInMainThread, assemblyFilename, assemblyFileHash, typeFullName, methodName, parameters, nonLocalVariables);
 
           string serialisedResult = serialiser.SerialiseToBase64(result);
 

@@ -9,8 +9,9 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Ovule.Nomad.Sample.SemiRealistic.Business</RootNamespace>
     <AssemblyName>Ovule.Nomad.Sample.SemiRealistic.Business</AssemblyName>
-    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -30,12 +31,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Ovule">
-      <HintPath>..\lib\Ovule.dll</HintPath>
-    </Reference>
-    <Reference Include="Ovule.Nomad">
-      <HintPath>..\lib\Ovule.Nomad.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="Microsoft.CSharp" />
@@ -45,6 +40,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Ovule.Nomad\Ovule.Nomad.csproj">
+      <Project>{27dad5d8-c1af-4a91-afa6-17f36282ff26}</Project>
+      <Name>Ovule.Nomad</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Ovule.Nomad.Sample.SemiRealistic.Data\Ovule.Nomad.Sample.SemiRealistic.Data.csproj">
       <Project>{5e218d0f-3b71-4b30-b853-424a66bdaa0c}</Project>
       <Name>Ovule.Nomad.Sample.SemiRealistic.Data</Name>

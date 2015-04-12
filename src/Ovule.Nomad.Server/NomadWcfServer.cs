@@ -21,6 +21,7 @@ using Ovule.Nomad.Wcf;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.IO;
 using System.Reflection;
 using System.ServiceModel;
 using System.ServiceModel.Configuration;
@@ -155,7 +156,7 @@ namespace Ovule.Nomad.Server
           }
           else if (uriType == UriType.Tcp)
           {
-            config.EnableProtocol(new NetTcpBinding());
+            config.EnableProtocol(new NetTcpBinding() { MaxBufferPoolSize = int.MaxValue, MaxReceivedMessageSize = int.MaxValue });
           }
           else if (uriType == UriType.NamedPipe)
           {
@@ -178,20 +179,39 @@ namespace Ovule.Nomad.Server
 
     #region OperationContract
 
-    public string ExecuteNomadMethodUsingBinarySerialiser(NomadMethodType methodType, bool runInMainThread, string assemblyFileName, string typeFullName, string methodName, IList<string> serialisedParameters, IList<string> serialisedNonLocalVariables)
+    public NomadMethodResult ExecuteNomadMethodRaw(NomadMethodType methodType, bool runInMainThread, string assemblyFileName, string assemblyFileHash, byte[] rawAssembly, string typeFullName, string methodName, IList<ParameterVariable> parameters, IList<IVariable> nonLocalVariables)
     {
-      object executionObject = GetExecutionObject(assemblyFileName, typeFullName);
-      Assembly asm = executionObject.GetType().Assembly;
-      ResolveEventHandler onAssemblyResolve = (s, args) => { return TryResolveAssembly(asm, args.Name); };
-      AppDomain.CurrentDomain.AssemblyResolve += onAssemblyResolve;
+      return ExecuteNomadMethod(methodType, runInMainThread, assemblyFileName, assemblyFileHash, rawAssembly, typeFullName, methodName, parameters, nonLocalVariables);
+    }
+
+    public string ExecuteNomadMethodUsingBinarySerialiser(NomadMethodType methodType, bool runInMainThread, string assemblyFileName, string assemblyFileHash, string typeFullName, string methodName, IList<string> serialisedParameters, IList<string> serialisedNonLocalVariables)
+    {
+      ResolveEventHandler onAssemblyResolve = null;
       try
       {
-        //TODO: Experiment with this to see if serialising individual items is better/worse than serialising lists as a whole
+        NomadMethodResult result = null;
         Serialiser serialiser = new Serialiser();
-        IList<ParameterVariable> parameters = serialiser.DeserialiseBase64<ParameterVariable>(serialisedParameters, false);
-        IList<IVariable> nonLocalVariables = serialiser.DeserialiseBase64<IVariable>(serialisedNonLocalVariables, true);
 
-        NomadMethodResult result = base.ExecuteNomadMethod(methodType, runInMainThread, assemblyFileName, typeFullName, methodName, parameters, nonLocalVariables);
+        //TODO: make more efficient, this will trigger a search on the probing path and there will be another later.  Ensure just one search
+        if (!IsRequiredAssemblyAvailable(assemblyFileName, assemblyFileHash))
+        {
+          _logger.LogWarning("Could not find assembly '{0}' on probing path.  Letting client know so that it may make another request which provides the raw assembly", assemblyFileName);
+          result = new NomadMethodResult(NomadAssemblyNotFoundReturnValue, null);
+        }
+        else
+        {
+          object executionObject = GetExecutionObject(assemblyFileName, assemblyFileHash, typeFullName);
+          Assembly asm = executionObject.GetType().Assembly;
+          onAssemblyResolve = (s, args) => { return TryResolveAssembly(asm, args.Name, assemblyFileHash); };
+          AppDomain.CurrentDomain.AssemblyResolve += onAssemblyResolve;
+
+          //TODO: Experiment with this to see if serialising individual items is better/worse than serialising lists as a whole
+          IList<ParameterVariable> parameters = serialiser.DeserialiseBase64<ParameterVariable>(serialisedParameters, false);
+          IList<IVariable> nonLocalVariables = serialiser.DeserialiseBase64<IVariable>(serialisedNonLocalVariables, true);
+
+          result = base.ExecuteNomadMethod(methodType, runInMainThread, assemblyFileName, assemblyFileHash, typeFullName, methodName, parameters, nonLocalVariables);
+        }
+
         if (result == null)
           throw new NullReferenceException("The result of calling ExecuteNomadMethod(...) was 'null'");
 
@@ -205,8 +225,26 @@ namespace Ovule.Nomad.Server
       }
       finally
       {
-        AppDomain.CurrentDomain.AssemblyResolve -= onAssemblyResolve;
+        if (onAssemblyResolve != null)
+          AppDomain.CurrentDomain.AssemblyResolve -= onAssemblyResolve;
       }
+    }
+
+    /// <summary>
+    /// Same as other ExecuteNomadMethodUsingBinarySerialiser(...) method but this one accepts a raw assembly 
+    /// </summary>
+    /// <param name="methodType"></param>
+    /// <param name="runInMainThread"></param>
+    /// <param name="rawAssembly"></param>
+    /// <param name="typeFullName"></param>
+    /// <param name="methodName"></param>
+    /// <param name="serialisedParameters"></param>
+    /// <param name="serialisedNonLocalVariables"></param>
+    /// <returns></returns>
+    public string ExecuteNomadMethodUsingBinarySerialiserRaw(NomadMethodType methodType, bool runInMainThread, string assemblyFileName, string assemblyFileHash, byte[] rawAssembly, string typeFullName, string methodName, IList<string> serialisedParameters, IList<string> serialisedNonLocalVariables)
+    {
+      SaveRawAssembly(rawAssembly, assemblyFileName, assemblyFileHash);
+      return ExecuteNomadMethodUsingBinarySerialiser(methodType, runInMainThread, assemblyFileName, assemblyFileHash, typeFullName, methodName, serialisedParameters, serialisedNonLocalVariables);
     }
 
     #endregion OperationContract

@@ -9,11 +9,12 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Ovule.Nomad.Sample.Chat</RootNamespace>
     <AssemblyName>Ovule.Nomad.Sample.Chat</AssemblyName>
-    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WarningLevel>4</WarningLevel>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -35,18 +36,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Ovule">
-      <HintPath>..\lib\Ovule.dll</HintPath>
-    </Reference>
-    <Reference Include="Ovule.Nomad">
-      <HintPath>..\lib\Ovule.Nomad.dll</HintPath>
-    </Reference>
-    <Reference Include="Ovule.Nomad.Server">
-      <HintPath>..\lib\Ovule.Nomad.Server.dll</HintPath>
-    </Reference>
-    <Reference Include="Ovule.Nomad.Wcf">
-      <HintPath>..\lib\Ovule.Nomad.Wcf.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.configuration" />
     <Reference Include="Microsoft.CSharp" />
@@ -107,6 +96,24 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Ovule.Nomad.Server\Ovule.Nomad.Server.csproj">
+      <Project>{f1ff5f69-2784-47c7-b753-a7b1debd43f6}</Project>
+      <Name>Ovule.Nomad.Server</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Ovule.Nomad.Wcf\Ovule.Nomad.Wcf.csproj">
+      <Project>{af56b8f0-d5ce-456c-a1c6-b08c50479c47}</Project>
+      <Name>Ovule.Nomad.Wcf</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Ovule.Nomad\Ovule.Nomad.csproj">
+      <Project>{27dad5d8-c1af-4a91-afa6-17f36282ff26}</Project>
+      <Name>Ovule.Nomad</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Ovule\Ovule.csproj">
+      <Project>{25d61f61-2857-47e2-b2ac-ad82cf632185}</Project>
+      <Name>Ovule</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

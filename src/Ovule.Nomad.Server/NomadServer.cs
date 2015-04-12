@@ -23,6 +23,7 @@ using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Windows;
 
 namespace Ovule.Nomad.Server
@@ -45,6 +46,8 @@ namespace Ovule.Nomad.Server
     /// Each dependency is stored as a resource with this prefix.
     /// </summary>
     private const string AssemblyResourceNamePrefix = "NomadRefRes:";
+    private const string DynamicNomadAssemblyRelativeDir = "dynomad";
+    protected const string NomadAssemblyNotFoundReturnValue = "#______#NomadAssemblyNotFound#______#";
 
     private static ILogger _logger = LoggerFactory.Create(typeof(NomadServer).FullName);
 
@@ -73,8 +76,15 @@ namespace Ovule.Nomad.Server
     /// <param name="parameters"></param>
     /// <param name="nonLocalVariables"></param>
     /// <returns></returns>
-    public virtual NomadMethodResult ExecuteNomadMethod(NomadMethodType methodType, bool runInMainThread, string assemblyFileName, string typeFullName, string methodName, IList<ParameterVariable> parameters, IList<IVariable> nonLocalVariables)
+    public virtual NomadMethodResult ExecuteNomadMethod(NomadMethodType methodType, bool runInMainThread, string assemblyFileName, string assemblyFileHash, string typeFullName, string methodName, IList<ParameterVariable> parameters, IList<IVariable> nonLocalVariables)
     {
+      //TODO: make more efficient, this will trigger a search on the probing path and there will be another later.  Ensure just one search
+      if (!IsRequiredAssemblyAvailable(assemblyFileName, assemblyFileHash))
+      {
+        _logger.LogWarning("Could not find assembly '{0}' on probing path.  Letting client know so that it may make another request which provides the raw assembly", assemblyFileName);
+        return new NomadMethodResult(NomadAssemblyNotFoundReturnValue, null);
+      }
+
       try
       {
         this.ThrowIfArgumentIsNoValueString(() => assemblyFileName);
@@ -85,16 +95,10 @@ namespace Ovule.Nomad.Server
           methodType, runInMainThread, assemblyFileName, typeFullName, methodName);
 
         object methodResult = null;
-        //TODO: sort out - only good for WPF and introduces dependency on PresentationFramework
-        if (runInMainThread && Application.Current != null)
-        {
-          Application.Current.Dispatcher.Invoke(new Action(() => 
-          {
-            methodResult = ExecuteNomadMethodInRequiredThread(methodType, assemblyFileName, typeFullName, methodName, parameters, nonLocalVariables);
-          }), null);
-        }
+        if (runInMainThread)
+          throw new NotSupportedException("This feature isn't yet supported");
         else
-          methodResult = ExecuteNomadMethodInRequiredThread(methodType, assemblyFileName, typeFullName, methodName, parameters, nonLocalVariables);
+          methodResult = ExecuteNomadMethodInRequiredThread(methodType, assemblyFileName, assemblyFileHash, typeFullName, methodName, parameters, nonLocalVariables);
 
         _logger.LogInfo("ExecuteNomadicMethod: Complete");
         NomadMethodResult result = new NomadMethodResult(methodResult, nonLocalVariables);
@@ -108,6 +112,23 @@ namespace Ovule.Nomad.Server
     }
 
     /// <summary>
+    /// Refer to comments for Ovule.Nomad.Server.INomadServer.ExecuteNomadicMethod(...)
+    /// </summary>
+    /// <param name="methodType"></param>
+    /// <param name="runInMainThread"></param>
+    /// <param name="assemblyFileName"></param>
+    /// <param name="typeFullName"></param>
+    /// <param name="methodName"></param>
+    /// <param name="parameters"></param>
+    /// <param name="nonLocalVariables"></param>
+    /// <returns></returns>
+    public virtual NomadMethodResult ExecuteNomadMethod(NomadMethodType methodType, bool runInMainThread, string assemblyFileName, string assemblyFileHash, byte[] rawAssembly, string typeFullName, string methodName, IList<ParameterVariable> parameters, IList<IVariable> nonLocalVariables)
+    {
+      SaveRawAssembly(rawAssembly, assemblyFileName, assemblyFileHash);
+      return ExecuteNomadMethod(methodType, runInMainThread, assemblyFileName, assemblyFileHash, typeFullName, methodName, parameters, nonLocalVariables);
+    }
+
+    /// <summary>
     /// 
     /// </summary>
     /// <param name="methodType"></param>
@@ -117,14 +138,14 @@ namespace Ovule.Nomad.Server
     /// <param name="parameters"></param>
     /// <param name="nonLocalVariables"></param>
     /// <returns></returns>
-    private object ExecuteNomadMethodInRequiredThread(NomadMethodType methodType, string assemblyFileName, string typeFullName, string methodName, IList<ParameterVariable> parameters, IList<IVariable> nonLocalVariables)
+    private object ExecuteNomadMethodInRequiredThread(NomadMethodType methodType, string assemblyFileName, string assemblyFileHash, string typeFullName, string methodName, IList<ParameterVariable> parameters, IList<IVariable> nonLocalVariables)
     {
-      object executionObject = GetExecutionObject(assemblyFileName, typeFullName);
+      object executionObject = GetExecutionObject(assemblyFileName, assemblyFileHash, typeFullName);
 
       if (methodType == NomadMethodType.Normal)
         NonLocalReferenceHelper.SetNonLocalVariables(executionObject, executionObject.GetType(), nonLocalVariables);
 
-      object methodResult = ExecuteMethod(executionObject.GetType(), methodType == NomadMethodType.Normal ? executionObject : null, methodName, parameters);
+      object methodResult = ExecuteMethod(executionObject.GetType(), methodType == NomadMethodType.Normal ? executionObject : null, methodName, parameters, assemblyFileHash);
 
       if (methodType == NomadMethodType.Normal)
         NonLocalReferenceHelper.RecoverNonLocalVariables(executionObject, nonLocalVariables);
@@ -139,7 +160,7 @@ namespace Ovule.Nomad.Server
     /// <param name="methodName"></param>
     /// <param name="parameters"></param>
     /// <returns></returns>
-    private object ExecuteMethod(Type executionType, object executionObject, string methodName, IList<ParameterVariable> parameters)
+    private object ExecuteMethod(Type executionType, object executionObject, string methodName, IList<ParameterVariable> parameters, string assemblyFileHash)
     {
       this.ThrowIfArgumentIsNull(() => executionType);
       this.ThrowIfArgumentIsNoValueString(() => methodName);
@@ -147,14 +168,14 @@ namespace Ovule.Nomad.Server
       _logger.LogInfo("ExecuteMethod: executionObject = '{0}', methodName = '{1}'", executionType.FullName, methodName);
 
       Assembly asm = executionType.Assembly;
-      ResolveEventHandler onAssemblyResolve = (s, args) => { return TryResolveAssembly(asm, args.Name); };
+      ResolveEventHandler onAssemblyResolve = (s, args) => { return TryResolveAssembly(asm, args.Name, assemblyFileHash); };
       AppDomain.CurrentDomain.AssemblyResolve += onAssemblyResolve;
       try
       {
         Type[] methodParamTypes = GetMethodParameterTypes(parameters);
         FlickIsRepeatParameterIfRequired(parameters);
 
-        MethodInfo executionMethod = executionType.GetMethod(methodName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static, 
+        MethodInfo executionMethod = executionType.GetMethod(methodName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static,
           null, methodParamTypes, null);
 
         if (executionMethod == null)
@@ -182,6 +203,16 @@ namespace Ovule.Nomad.Server
     #endregion INomadService
 
     #region Util
+
+    protected void SaveRawAssembly(byte[] rawAssembly, string assemblyFilename, string assemblyFileHash)
+    {
+      string asmDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, DynamicNomadAssemblyRelativeDir, assemblyFileHash);
+
+      if (!Directory.Exists(asmDir))
+        Directory.CreateDirectory(asmDir);
+
+      File.WriteAllBytes(Path.Combine(asmDir, assemblyFilename), rawAssembly);
+    }
 
     /// <summary>
     /// If this is a non-Normal method (i.e. Relay, Repeat, ...) a string parameter will have been added to the method by the Processor and 
@@ -213,12 +244,7 @@ namespace Ovule.Nomad.Server
         List<Type> methodParamTypesList = new List<Type>();
         foreach (ParameterVariable parameter in parameters)
         {
-          Type parameterType = null;
-          if (parameter.Value != null)
-            parameterType = parameter.Value.GetType();
-          else
-            parameterType = Type.GetType(parameter.TypeFullName);
-
+          Type parameterType = Type.GetType(parameter.Value.GetType().AssemblyQualifiedName);
           if (parameterType == null)
             throw new TypeLoadException(string.Format("Parameter '{0}' is of type '{1}' however the type could not be loaded", parameter.Name, parameter.TypeFullName));
 
@@ -237,9 +263,9 @@ namespace Ovule.Nomad.Server
     /// <param name="assemblyFileName"></param>
     /// <param name="typeFullName"></param>
     /// <returns></returns>
-    protected object GetExecutionObject(string assemblyFileName, string typeFullName)
+    protected object GetExecutionObject(string assemblyFileName, string assemblyFileHash, string typeFullName)
     {
-      Type executionType = GetExecutionType(assemblyFileName, typeFullName);
+      Type executionType = GetExecutionType(assemblyFileName, assemblyFileHash, typeFullName);
 
       object executionObject = Activator.CreateInstance(executionType);
       if (executionObject == null)
@@ -255,14 +281,14 @@ namespace Ovule.Nomad.Server
     /// <param name="assemblyFileName"></param>
     /// <param name="typeFullName"></param>
     /// <returns></returns>
-    private Type GetExecutionType(string assemblyFileName, string typeFullName)
+    private Type GetExecutionType(string assemblyFileName, string assemblyFileHash, string typeFullName)
     {
       this.ThrowIfArgumentIsNoValueString(() => assemblyFileName);
       this.ThrowIfArgumentIsNoValueString(() => typeFullName);
 
       _logger.LogInfo("GetExecutionType: assemblyFileName = '{0}', typeFullName = '{1}'", assemblyFileName, typeFullName);
 
-      string asmPath = GetAssemblyPath(assemblyFileName);
+      string asmPath = GetAssemblyPath(assemblyFileName, assemblyFileHash);
       Assembly asm = Assembly.LoadFrom(asmPath);
       if (asm == null)
         throw new NomadException(string.Format("Failed to load assembly at path '{0}'", asmPath));
@@ -282,16 +308,28 @@ namespace Ovule.Nomad.Server
     #region Reference Resolution
 
     /// <summary>
+    /// Returns true if the assembly with name 'assemblyFilename' is found on the probing path
+    /// </summary>
+    /// <param name="assemblyFilename"></param>
+    /// <returns></returns>
+    protected bool IsRequiredAssemblyAvailable(string assemblyFilename, string assemblyFileHash)
+    {
+      string asmPath = GetAssemblyPath(assemblyFilename, assemblyFileHash, false);
+      return !string.IsNullOrWhiteSpace(asmPath);
+    }
+
+    /// <summary>
     /// Returns the directories to consider when looking for assemblies that contain nomadic methods.
     /// Override in a derived class if you want different paths.
     /// </summary>
     /// <returns></returns>
-    protected virtual string[] GetAssemblyProbeDirectories()
+    protected virtual string[] GetAssemblyProbeDirectories(string assemblyFileHash)
     {
       string[] probeDirs = 
       {
         AppDomain.CurrentDomain.BaseDirectory,
-        Path.Combine(AppDomain.CurrentDomain.BaseDirectory,"bin")
+        Path.Combine(AppDomain.CurrentDomain.BaseDirectory,"bin"),
+        Path.Combine(AppDomain.CurrentDomain.BaseDirectory,DynamicNomadAssemblyRelativeDir, assemblyFileHash)
       };
       return probeDirs;
     }
@@ -302,21 +340,27 @@ namespace Ovule.Nomad.Server
     /// </summary>
     /// <param name="assemblyFilename">The filename of the assembly that a full path is needed for, e.g. "MyFancyAssembly.dll"</param>
     /// <returns></returns>
-    protected virtual string GetAssemblyPath(string assemblyFilename)
+    protected virtual string GetAssemblyPath(string assemblyFilename, string assemblyFileHash, bool throwFileNotFoundException = true)
     {
-      foreach (string probeDir in GetAssemblyProbeDirectories())
+      foreach (string probeDir in GetAssemblyProbeDirectories(assemblyFileHash))
       {
-        _logger.LogInfo("GetAssemblyPath: Trying to load assembly '{0}' from directory '{1}'", assemblyFilename, probeDir);
+        _logger.LogInfo("GetAssemblyPath: Trying to load assembly '{0}' with hash '{1}' from directory '{2}'", assemblyFilename, assemblyFileHash, probeDir);
         string probeFilename = Path.Combine(probeDir, assemblyFilename);
         if (File.Exists(probeFilename))
         {
-          _logger.LogInfo("GetAssemblyPath: Found assembly '{0}' in directory '{1}'", assemblyFilename, probeDir);
+          _logger.LogInfo("GetAssemblyPath: Found assembly '{0}' with hash '{1}' in directory '{2}'", assemblyFilename, assemblyFileHash, probeDir);
           return probeFilename;
         }
       }
-      throw new FileNotFoundException(string.Format("GetAssemblyPath: Could not find assembly '{0}'. " +
-        "Perhaps '{1}.GetAssemblyProbeDirectories()' or '{1}.GetAssemblyPath(string)' should be overloaded",
-        assemblyFilename, this.GetType().FullName));
+
+      if (throwFileNotFoundException)
+      {
+        throw new FileNotFoundException(string.Format("GetAssemblyPath: Could not find assembly '{0}'. " +
+          "Perhaps '{1}.GetAssemblyProbeDirectories()' or '{1}.GetAssemblyPath(string)' should be overloaded",
+          assemblyFilename, this.GetType().FullName));
+      }
+      else
+        return null;
     }
 
     /// <summary>
@@ -328,29 +372,41 @@ namespace Ovule.Nomad.Server
     /// <param name="resolveFrom"></param>
     /// <param name="assemblyName"></param>
     /// <returns></returns>
-    protected Assembly TryResolveAssembly(Assembly resolveFrom, string assemblyName)
+    protected Assembly TryResolveAssembly(Assembly resolveFrom, string assemblyName, string assemblyFileHash)
     {
       try
       {
+        Assembly resolved = null;
         _logger.LogInfo("TryResolveAssembly: Processing request to resolve assembly '{0}'", assemblyName);
 
-        string asmResourceName = string.Format("{0}{1}", AssemblyResourceNamePrefix, assemblyName);
-        string[] resourceNames = resolveFrom.GetManifestResourceNames();
-        if (resourceNames == null || !resourceNames.Contains(asmResourceName))
+        //can happen in P2P setting where serialised type assembly isn't mapped to loaded assembly
+        if (assemblyName == resolveFrom.FullName)
+          resolved = resolveFrom;
+        else
         {
+          string asmResourceName = string.Format("{0}{1}", AssemblyResourceNamePrefix, assemblyName);
+          string[] resourceNames = resolveFrom.GetManifestResourceNames();
+          if (resourceNames != null && resourceNames.Contains(asmResourceName))
+          {
+            using (Stream stream = resolveFrom.GetManifestResourceStream(asmResourceName))
+            {
+              byte[] assemblyData = new byte[stream.Length];
+              stream.Read(assemblyData, 0, assemblyData.Length);
+
+              AssemblyName asmName = new AssemblyName(assemblyName);
+              string asmPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, DynamicNomadAssemblyRelativeDir, assemblyFileHash, string.Format("{0}.dll", asmName.Name));
+              File.WriteAllBytes(asmPath, assemblyData);
+
+              resolved = Assembly.LoadFile(asmPath);
+
+              _logger.LogInfo("TryResolveAssembly: Resolved assembly '{0}'", resolved.FullName);
+            }
+          }
+        }
+        if(resolved == null)
           _logger.LogInfo("TryResolveAssembly: Did not resolve assembly '{0}' returing control to .Net framework.", assemblyName);
-          return null;
-        }
-        using (Stream stream = resolveFrom.GetManifestResourceStream(asmResourceName))
-        {
-          byte[] assemblyData = new byte[stream.Length];
-          stream.Read(assemblyData, 0, assemblyData.Length);
-          Assembly resolved = Assembly.Load(assemblyData);
-
-          _logger.LogInfo("TryResolveAssembly: Resolved assembly '{0}'", resolved.FullName);
-
-          return resolved;
-        }
+        
+        return resolved;
       }
       catch(Exception ex)
       {

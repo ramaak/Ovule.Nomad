@@ -64,17 +64,17 @@ namespace Ovule.Nomad.Client
       try
       {
         KeyValueConfigurationElement serverUriSetting = NomadConfig.AppSettings.Settings[NomadServerUriConfig];
-        if(serverUriSetting == null || string.IsNullOrWhiteSpace(serverUriSetting.Value))
-          throw new NomadClientInitialisationException("Application configuration value for '{0}' is missing", NomadServerUriConfig);
-
-        string defaultServerUriString = NomadConfig.AppSettings.Settings[NomadServerUriConfig].Value;
-        try
+        if (serverUriSetting != null && string.IsNullOrWhiteSpace(serverUriSetting.Value))
         {
-          DefaultNomadServerUri = new Uri(defaultServerUriString);
-        }
-        catch (Exception pex)
-        {
-          throw new NomadClientInitialisationException(pex, "Application configuration value for '{0}' is invalid", NomadServerUriConfig);
+          string defaultServerUriString = NomadConfig.AppSettings.Settings[NomadServerUriConfig].Value;
+          try
+          {
+            DefaultNomadServerUri = new Uri(defaultServerUriString);
+          }
+          catch (Exception pex)
+          {
+            throw new NomadClientInitialisationException(pex, "Application configuration value for '{0}' is invalid", NomadServerUriConfig);
+          }
         }
       }
       catch(Exception ex)
@@ -91,7 +91,8 @@ namespace Ovule.Nomad.Client
       {
         if (ChannelFactories == null)
         {
-          PrimeDefaultServerChannel();
+          if (DefaultNomadServerUri != null)
+            PrimeDefaultServerChannel();
           ChannelFactories = new Dictionary<string, ChannelFactory<INomadWcfService>>();
         }
       }
@@ -127,7 +128,17 @@ namespace Ovule.Nomad.Client
     /// <param name="parameters">The parameters to pass to method 'methodName', e.g. "MyFancyMethod"</param>
     /// <param name="nonLocalVariables">A collection of fields/properties that are currently with reach of method 'methodName', methods it calls, methods they call, etc.</param>
     /// <returns></returns>
-    protected override NomadMethodResult IssueServerRequest(Uri endpoint, NomadMethodType methodType, bool runInMainThread, string assemblyName, string typeFullName, string methodName, IList<ParameterVariable> parameters, IList<IVariable> nonLocalVariables)
+    protected override NomadMethodResult IssueServerRequest(Uri endpoint, NomadMethodType methodType, bool runInMainThread, string assemblyName, string assemblyFileHash, string typeFullName, string methodName, IList<ParameterVariable> parameters, IList<IVariable> nonLocalVariables)
+    {
+      return DoIssueServerRequest(endpoint, methodType, runInMainThread, assemblyName, assemblyFileHash, null, typeFullName, methodName, parameters, nonLocalVariables);
+    }
+
+    protected override NomadMethodResult IssueServerRequest(Uri endpoint, NomadMethodType methodType, bool runInMainThread, string assemblyFileName, string assemblyFileHash, byte[] rawAssembly, string typeFullName, string methodName, IList<ParameterVariable> parameters, IList<IVariable> nonLocalVariables)
+    {
+      return DoIssueServerRequest(endpoint, methodType, runInMainThread, assemblyFileName, assemblyFileHash, rawAssembly, typeFullName, methodName, parameters, nonLocalVariables);
+    }
+
+    private NomadMethodResult DoIssueServerRequest(Uri endpoint, NomadMethodType methodType, bool runInMainThread, string assemblyName, string assemblyFileHash, byte[] rawAssembly, string typeFullName, string methodName, IList<ParameterVariable> parameters, IList<IVariable> nonLocalVariables)
     {
       INomadWcfService channel = null;
       try
@@ -136,7 +147,11 @@ namespace Ovule.Nomad.Client
           methodType.ToString(), runInMainThread, assemblyName, typeFullName, methodName);
 
         if (endpoint == null)
+        {
+          if (DefaultNomadServerUri == null)
+            throw new NomadClientException("No endpoint was specified and there is no default endpoint to fall back on");
           endpoint = DefaultNomadServerUri;
+        }
 
         channel = GetChannel(endpoint);
 
@@ -152,12 +167,23 @@ namespace Ovule.Nomad.Client
           Serialiser serialiser = new Serialiser();
           IList<string> serialisedParameters = serialiser.SerialiseToBase64(parameters);
           IList<string> serialisedNonLocalVariables = serialiser.SerialiseToBase64(nonLocalVariables);
-          string serialisedResult = channel.ExecuteNomadMethodUsingBinarySerialiser(methodType, runInMainThread, assemblyName, typeFullName, methodName, serialisedParameters, serialisedNonLocalVariables);
+          string serialisedResult = null;
+
+          if (rawAssembly == null || rawAssembly.Length == 0)
+            serialisedResult = channel.ExecuteNomadMethodUsingBinarySerialiser(methodType, runInMainThread, assemblyName, assemblyFileHash, typeFullName, methodName, serialisedParameters, serialisedNonLocalVariables);
+          else
+            serialisedResult = channel.ExecuteNomadMethodUsingBinarySerialiserRaw(methodType, runInMainThread, assemblyName, assemblyFileHash, rawAssembly, typeFullName, methodName, serialisedParameters, serialisedNonLocalVariables);
+
           if (serialisedResult != null)
             result = serialiser.DeserialiseBase64<NomadMethodResult>(serialisedResult);
         }
         else
-          result = channel.ExecuteNomadMethod(methodType, runInMainThread, assemblyName, typeFullName, methodName, parameters, nonLocalVariables);
+        {
+          if (rawAssembly == null || rawAssembly.Length == 0)
+            result = channel.ExecuteNomadMethod(methodType, runInMainThread, assemblyName, assemblyFileHash, typeFullName, methodName, parameters, nonLocalVariables);
+          else
+            result = channel.ExecuteNomadMethodRaw(methodType, runInMainThread, assemblyName, assemblyFileHash, rawAssembly, typeFullName, methodName, parameters, nonLocalVariables);
+        }
 
         if (result == null)
           throw new NomadException(string.Format("Did not receive a response from the Nomad service for method '{0}.{1}'", typeFullName, methodName));

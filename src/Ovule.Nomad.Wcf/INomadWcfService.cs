@@ -38,7 +38,21 @@ namespace Ovule.Nomad.Wcf
     /// <param name="nonLocalVariables"></param>
     /// <returns></returns>
     [OperationContract]
-    NomadMethodResult ExecuteNomadMethod(NomadMethodType methodType, bool runInMainThread, string assemblyFileName, string typeFullName, string methodName, IList<ParameterVariable> parameters, IList<IVariable> nonLocalVariables);
+    NomadMethodResult ExecuteNomadMethod(NomadMethodType methodType, bool runInMainThread, string assemblyFileName, string assemblyFileHash, string typeFullName, string methodName, IList<ParameterVariable> parameters, IList<IVariable> nonLocalVariables);
+
+    /// <summary>
+    /// Same as ExecuteNomadMethod(...) however accepts a raw assembly
+    /// </summary>
+    /// <param name="methodType"></param>
+    /// <param name="runInMainThread"></param>
+    /// <param name="rawAssembly"></param>
+    /// <param name="typeFullName"></param>
+    /// <param name="methodName"></param>
+    /// <param name="parameters"></param>
+    /// <param name="nonLocalVariables"></param>
+    /// <returns></returns>
+    [OperationContract]
+    NomadMethodResult ExecuteNomadMethodRaw(NomadMethodType methodType, bool runInMainThread, string assemblyFileName, string assemblyFileHash, byte[] rawAssembly, string typeFullName, string methodName, IList<ParameterVariable> parameters, IList<IVariable> nonLocalVariables);
 
     /// <summary>
     /// Here for the same purpose as ExecuteNomadMethod however offers the opportunity for alternative forms of serialisation.
@@ -54,6 +68,20 @@ namespace Ovule.Nomad.Wcf
     /// <param name="serialisedNonLocalVariables"></param>
     /// <returns></returns>
     [OperationContract]
-    string ExecuteNomadMethodUsingBinarySerialiser(NomadMethodType methodType, bool runInMainThread, string assemblyFileName, string typeFullName, string methodName, IList<string> serialisedParameters, IList<string> serialisedNonLocalVariables);
+    string ExecuteNomadMethodUsingBinarySerialiser(NomadMethodType methodType, bool runInMainThread, string assemblyFileName, string assemblyFileHash, string typeFullName, string methodName, IList<string> serialisedParameters, IList<string> serialisedNonLocalVariables);
+
+    /// <summary>
+    /// Same as ExecuteNomadMethodUsingBinarySerialiser(...) however accepts a raw assembly
+    /// </summary>
+    /// <param name="methodType"></param>
+    /// <param name="runInMainThread"></param>
+    /// <param name="rawAssembly"></param>
+    /// <param name="typeFullName"></param>
+    /// <param name="methodName"></param>
+    /// <param name="serialisedParameters"></param>
+    /// <param name="serialisedNonLocalVariables"></param>
+    /// <returns></returns>
+    [OperationContract]
+    string ExecuteNomadMethodUsingBinarySerialiserRaw(NomadMethodType methodType, bool runInMainThread, string assemblyFileName, string assemblyFileHash, byte[] rawAssembly, string typeFullName, string methodName, IList<string> serialisedParameters, IList<string> serialisedNonLocalVariables);
   }
 }

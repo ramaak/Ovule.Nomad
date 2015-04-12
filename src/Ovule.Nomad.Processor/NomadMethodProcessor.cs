@@ -18,7 +18,6 @@ along with Nomad.  If not, see <http://www.gnu.org/licenses/>.
 */
 using Mono.Cecil;
 using Mono.Cecil.Cil;
-using Ovule.Nomad.Client;
 using System;
 using System.Collections.Generic;
 using System.Linq;

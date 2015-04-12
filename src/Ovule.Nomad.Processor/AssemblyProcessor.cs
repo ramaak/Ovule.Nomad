@@ -17,7 +17,6 @@ You should have received a copy of the GNU General Public License
 along with Nomad.  If not, see <http://www.gnu.org/licenses/>.
 */
 using Mono.Cecil;
-using Ovule.Nomad.Client;
 using System;
 using System.Linq;
 
@@ -32,8 +31,8 @@ namespace Ovule.Nomad.Processor
       this.ThrowIfArgumentIsNull(() => assemblyDef);
       this.ThrowIfArgumentIsNull(() => nomadClientType);
 
-      if (!typeof(INomadClient).IsAssignableFrom(nomadClientType) || nomadClientType.IsInterface || nomadClientType.IsAbstract)
-        throw new ArgumentException(string.Format("The 'nomadClientType' argument is invalid.  It must be a concrete type that implements '{0}'", typeof(INomadClient)));
+      //if (!typeof(INomadClient).IsAssignableFrom(nomadClientType) || nomadClientType.IsInterface || nomadClientType.IsAbstract)
+      //  throw new ArgumentException(string.Format("The 'nomadClientType' argument is invalid.  It must be a concrete type that implements '{0}'", typeof(INomadClient)));
 
       if (assemblyDef.Modules == null || assemblyDef.Modules.Count == 0)
         throw new NomadException(string.Format("Assembly '{0}' contains no modules", assemblyDef.FullName));

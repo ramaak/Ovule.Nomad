@@ -5,11 +5,11 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{9C1DC971-59BD-4EA4-92DE-6E20E35348F9}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Ovule.Nomad.Processor</RootNamespace>
     <AssemblyName>Ovule.Nomad.Processor</AssemblyName>
-    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -83,7 +83,6 @@
     <Compile Include="NomadMethodInfo.cs" />
     <Compile Include="NomadTypeInfo.cs" />
     <Compile Include="NomadTypeProcessorException.cs" />
-    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -91,14 +90,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Ovule.Nomad.Client.Email\Ovule.Nomad.Client.Email.csproj">
-      <Project>{bd7f699b-5d98-4231-8019-a72a2207df98}</Project>
-      <Name>Ovule.Nomad.Client.Email</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Ovule.Nomad.Client\Ovule.Nomad.Client.csproj">
-      <Project>{50c07475-0a00-42aa-82bf-5634ef725cb9}</Project>
-      <Name>Ovule.Nomad.Client</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Ovule.Nomad\Ovule.Nomad.csproj">
       <Project>{27dad5d8-c1af-4a91-afa6-17f36282ff26}</Project>
       <Name>Ovule.Nomad</Name>

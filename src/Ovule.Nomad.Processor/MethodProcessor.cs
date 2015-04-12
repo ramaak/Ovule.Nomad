@@ -18,7 +18,6 @@ along with Nomad.  If not, see <http://www.gnu.org/licenses/>.
 */
 using Mono.Cecil;
 using Mono.Cecil.Cil;
-using Ovule.Nomad.Client;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -153,7 +152,7 @@ namespace Ovule.Nomad.Processor
         {
           MethodReference calledMethDef = (MethodReference)instruction.Operand;
 
-          if (calledMethDef.DeclaringType != null && calledMethDef.DeclaringType.FullName == typeof(NomadClient).FullName)
+          if (calledMethDef.DeclaringType != null && calledMethDef.DeclaringType.FullName == "Ovule.Nomad.Client.NomadClient")//typeof(NomadClient).FullName)
             return; //multiple methods may reference each other, don't process them a second time
             //don't worry about message as meaningless to user if in recursive call, will get caught further up stack and rethrown
             //throw new MethodAlreadyProcessedException();

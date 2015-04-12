@@ -41,6 +41,19 @@ namespace Ovule.Nomad.Server
     /// <param name="parameters">The parameters accepted by method 'methodName'. If the method does not require parameters then set as 'null'</param>
     /// <param name="nonLocalVariables">The non-local fields/properties that method 'methodName' (or any other method which 'methodName' calls) accesses</param>
     /// <returns>The results of executing method 'methodName', i.e. the methods return value and details of all non-local fields/properties that have been referenced/changed</returns>
-    NomadMethodResult ExecuteNomadMethod(NomadMethodType methodType, bool runInMainThread, string assemblyFileName, string typeFullName, string methodName, IList<ParameterVariable> parameters, IList<IVariable> nonLocalVariables);
+    NomadMethodResult ExecuteNomadMethod(NomadMethodType methodType, bool runInMainThread, string assemblyFileName, string assemblyFileHash, string typeFullName, string methodName, IList<ParameterVariable> parameters, IList<IVariable> nonLocalVariables);
+
+    /// <summary>
+    /// Same as other ExecuteNomadMethod(...) however accepts a raw assembly
+    /// </summary>
+    /// <param name="methodType"></param>
+    /// <param name="runInMainThread"></param>
+    /// <param name="rawAssembly"></param>
+    /// <param name="typeFullName"></param>
+    /// <param name="methodName"></param>
+    /// <param name="parameters"></param>
+    /// <param name="nonLocalVariables"></param>
+    /// <returns></returns>
+    NomadMethodResult ExecuteNomadMethod(NomadMethodType methodType, bool runInMainThread, string assemblyFilename, string assemblyFileHash, byte[] rawAssembly, string typeFullName, string methodName, IList<ParameterVariable> parameters, IList<IVariable> nonLocalVariables);
   }
 }
