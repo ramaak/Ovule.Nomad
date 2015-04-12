@@ -17,17 +17,19 @@ You should have received a copy of the GNU General Public License
 along with Nomad.  If not, see <http://www.gnu.org/licenses/>.
 */
 using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading;
 
 namespace Ovule.Nomad.Client
 {
-  public class ParallelRemoteMethodExecuter : RemoteMethodExecuter, IRemoteMethodExecuter, IDisposable
+  public class ParallelRemoteMethodExecuter : IRemoteMethodExecuter, IDisposable
   {
     #region Properties/Fields
 
     private Uri[] _remoteUris;
-    private CountdownEvent _countdown;// = new CountdownEvent(1);
+    private CountdownEvent _countdown;
+    private RemoteMethodExecuter _exec = new RemoteMethodExecuter();
 
     #endregion Properties/Fields
 
@@ -44,14 +46,14 @@ namespace Ovule.Nomad.Client
 
     #region IRemoteMethodExecuter
 
-    public void ExecuteAsync<T>(Uri remoteUri, Action<T> operation, T operationArg)
+    private void ExecuteAsync<T>(Uri remoteUri, Action<T> operation, T operationArg)
     {
       _countdown.AddCount();
       ThreadPool.QueueUserWorkItem((state) =>
         {
           try
           {
-            base.Execute<T>(remoteUri, operation, operationArg);
+            _exec.Execute(remoteUri, operation, operationArg);
           }
           finally
           {
@@ -65,7 +67,7 @@ namespace Ovule.Nomad.Client
       _countdown.AddCount();
       try
       {
-        object result = base.Execute(remoteUri, operation);
+        object result = _exec.Execute(remoteUri, operation);
         return result;
       }
       finally
@@ -79,7 +81,7 @@ namespace Ovule.Nomad.Client
       _countdown.AddCount();
       try
       {
-        T result = base.Execute<T>(remoteUri, operation);
+        T result = _exec.Execute<T>(remoteUri, operation);
         return result;
       }
       finally
@@ -93,7 +95,7 @@ namespace Ovule.Nomad.Client
       _countdown.AddCount();
       try
       {
-        base.ExecuteLocalAndRemote(remoteUri, operation);
+        _exec.ExecuteLocalAndRemote(remoteUri, operation);
       }
       finally
       {
@@ -105,30 +107,39 @@ namespace Ovule.Nomad.Client
 
     #region Methods
 
-    public void For<T>(int from, int to, T[] data, Action<T[]> action)
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="action"></param>
+    /// <param name="data"></param>
+    public void DistributeArray<T>(Action<T[]> action, T[] data)
     {
-      For<T>(from, to, data, action, null);
+      DistributeArray<T>(action, data, null);
     }
 
-    public void For<T>(int from, int to, T[] data, Action<T[]> action, TimeSpan? timeout)
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="action"></param>
+    /// <param name="data"></param>
+    /// <param name="timeout"></param>
+    public void DistributeArray<T>(Action<T[]> action, T[] data, TimeSpan? timeout)
     {
-      int range = to - from;
-      if (range <= 0)
-        return;
+      this.ThrowIfArgumentIsNull(() => action);
       if (data == null || data.Length == 0)
         throw new ArgumentException("The 'data' argument contains no data");
-      this.ThrowIfArgumentIsNull(() => action);
 
-      int avgBlocksize = range / _remoteUris.Length;
+      int blockSize = data.Length / _remoteUris.Length;
       using (_countdown = new CountdownEvent(1))
       {
         for (int i = 0; i < _remoteUris.Length; i++)
         {
-          int blockStart = i * avgBlocksize;
-          int blockSize = avgBlocksize;
+          int blockStart = i * blockSize;
           //array might not cleanly divisible by number of URI's
           if (i == _remoteUris.Length - 1)
-            blockSize += range % _remoteUris.Length;
+            blockSize = data.Length - blockStart;
 
           T[] dataBlock = new T[blockSize];
           Array.Copy(data, blockStart, dataBlock, 0, blockSize);
