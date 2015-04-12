@@ -112,3 +112,5 @@
 /src/Test.Ovule.Nomad.Server/obj/Release
 /src/Test.Ovule.Nomad.Server.Email/obj/Release
 /src/Test.Ovule.Nomad.Wcf/obj/Release
+/src/Samples/Ovule.Nomad.Sample.MapReduce.API.Proto/bin/Debug
+/src/Samples/Ovule.Nomad.Sample.SemiRealistic.API.Client/bin/Debug

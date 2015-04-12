@@ -109,10 +109,6 @@
       <Project>{50c07475-0a00-42aa-82bf-5634ef725cb9}</Project>
       <Name>Ovule.Nomad.Client</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Ovule.Nomad.Processor\Ovule.Nomad.Processor.csproj">
-      <Project>{9c1dc971-59bd-4ea4-92de-6e20e35348f9}</Project>
-      <Name>Ovule.Nomad.Processor</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Ovule.Nomad.Server\Ovule.Nomad.Server.csproj">
       <Project>{f1ff5f69-2784-47c7-b753-a7b1debd43f6}</Project>
       <Name>Ovule.Nomad.Server</Name>
