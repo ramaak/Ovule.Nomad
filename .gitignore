@@ -76,7 +76,6 @@
 /src/Ovule.Email/obj/Release
 /src/Ovule.Nomad/obj/Release
 /src/Ovule.Nomad.Client/obj/Release
-/src/Ovule.Nomad.Client/BasicRemoteMethodExecuter.cs
 /src/Ovule.Nomad.Client.Email/obj/Release
 /src/Ovule.Nomad.Discovery/obj
 /src/Ovule.Nomad.Discovery/bin/Debug
@@ -86,7 +85,6 @@
 /src/Ovule.Nomad.Server/obj/Release
 /src/Ovule.Nomad.Server.Email/obj/Release
 /src/Ovule.Nomad.Server.Stock/bin/Release
-/src/Samples/Ovule.Nomad.Sample.API.Basic.Args/Ovule.Nomad.Sample.API.Basic.Args.csproj
 /src/Samples/Ovule.Nomad.Sample.API.Basic.Args/bin/Debug
 /src/Samples/Ovule.Nomad.Sample.API.Basic.Args/obj
 /src/Samples/Ovule.Nomad.Sample.API.Basic.Chain/bin/Debug
