@@ -60,6 +60,7 @@
     <Compile Include="NomadClientException.cs" />
     <Compile Include="NomadClientInitialisationException.cs" />
     <Compile Include="NomadWcfClient.cs" />
+    <Compile Include="ParallelRemoteMethodExecuter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RemoteMethodExecuter.cs" />
     <Compile Include="RemoteMethodNotExecutedException.cs" />

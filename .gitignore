@@ -114,3 +114,5 @@
 /src/Test.Ovule.Nomad.Wcf/obj/Release
 /src/Samples/Ovule.Nomad.Sample.MapReduce.API.Proto/bin/Debug
 /src/Samples/Ovule.Nomad.Sample.SemiRealistic.API.Client/bin/Debug
+/src/Samples/Ovule.Nomad.Sample.API.BasicLoadDistribution/bin/Debug
+/src/Samples/Ovule.Nomad.Sample.API.BasicLoadDistribution/obj/Debug

@@ -29,6 +29,9 @@ using System.Threading;
 namespace Ovule.Nomad.Client.Email
 {
   /// <summary>
+  /// 
+  /// ************ TODO: A lot has changed since this was last tested and it likely has issues now ************
+  /// 
   /// A concrete implementation of NomadClient that uses email as the communications mechanism.
   /// 
   /// This implementation was made more for fun and to demonstrate how unusual NomadClients can be be developed

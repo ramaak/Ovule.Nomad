@@ -16,13 +16,16 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Nomad.  If not, see <http://www.gnu.org/licenses/>.
 */
+using Ovule.Nomad.Discovery;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Reflection;
+using System.Threading;
 
 namespace Ovule.Nomad.Client
 {
-  public abstract class RemoteMethodExecuter : IRemoteMethodExecuter
+  public class RemoteMethodExecuter : IRemoteMethodExecuter
   {
     #region Cache
 
@@ -34,10 +37,79 @@ namespace Ovule.Nomad.Client
 
     /// <summary>
     /// Executes a standard nomadic method
+    /// 
+    /// TODO: Caching!!!
     /// </summary>
     /// <param name="operation"></param>
     /// <returns></returns>
-    public abstract object Execute(Expression<Action> operation);
+    public virtual object Execute(Uri remoteUri, Expression<Action> operation)
+    {
+      this.ThrowIfArgumentIsNull(() => operation);
+
+      MethodCallExpression methExp = operation.Body as MethodCallExpression;
+      if (methExp == null)
+        throw new NotSupportedException("The operation must be a direct method call");
+
+      KeyValuePair<MethodInfo, Tuple<Type, object>[]> methodCall = ExpressionUtils.ResolveMethod(operation);
+      IList<ParameterVariable> parameters = GetMethodParameters(methodCall.Value);
+
+      //first try executing without passing through the raw assembly.  The server will cache any assemblies it's given 
+      //so if this isn't the first call for method then this should succeed
+      ExecuteServiceCallResult result = ExecuteServiceCall(remoteUri, methExp, parameters, null);
+
+      //if this is the first call for the method that the servers seen it'll respond saying the assemblies missing so
+      //we need to pass it along now
+      if (result.IsAssemblyMissing)
+      {
+        byte[] rawAssembly = new AssemblyGenerator().GenerateAssemblyForMethod(methodCall.Key);
+        if (rawAssembly == null || rawAssembly.Length == 0)
+          throw new NomadClientException("Failed to generate raw assembly to send to server");
+
+        result = ExecuteServiceCall(remoteUri, methExp, parameters, rawAssembly);
+      }
+
+      //is there a failure we can't recover from here?
+      //this could be for a number of reasons, e.g. offline, configuration, ... 
+      if (!result.IsExecuted)
+        throw new RemoteMethodNotExecutedException("The remote method was not executed");
+
+      return result.Result;
+    }
+
+
+    /// <summary>
+    /// TODO: Tidy up!!
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="remoteUri"></param>
+    /// <param name="operation"></param>
+    /// <param name="operationArg"></param>
+    public virtual void Execute<T>(Uri remoteUri, Action<T> operation, T operationArg)
+    {
+      this.ThrowIfArgumentIsNull(() => operation);
+
+      //first try executing without passing through the raw assembly.  The server will cache any assemblies it's given 
+      //so if this isn't the first call for method then this should succeed
+      ExecuteServiceCallResult result = ExecuteServiceCall(operation.Method.IsStatic, remoteUri, operation.Target, operation.Method.DeclaringType, operation.Method.Name,
+        new List<ParameterVariable>() { new ParameterVariable("p1", typeof(T).FullName, operationArg) }, null);
+
+      //if this is the first call for the method that the servers seen it'll respond saying the assemblies missing so
+      //we need to pass it along now
+      if (result.IsAssemblyMissing)
+      {
+        byte[] rawAssembly = new AssemblyGenerator().GenerateAssemblyForMethod(operation.Method);
+        if (rawAssembly == null || rawAssembly.Length == 0)
+          throw new NomadClientException("Failed to generate raw assembly to send to server");
+
+        result = ExecuteServiceCall(operation.Method.IsStatic, remoteUri, operation.Target, operation.Method.DeclaringType, operation.Method.Name,
+        new List<ParameterVariable>() { new ParameterVariable("p1", typeof(T).FullName, operationArg) }, rawAssembly);
+      }
+
+      //is there a failure we can't recover from here?
+      //this could be for a number of reasons, e.g. offline, configuration, ... 
+      if (!result.IsExecuted)
+        throw new RemoteMethodNotExecutedException("The remote method was not executed");
+    }
 
     /// <summary>
     /// Executes a standard nomadic method and returns the result as T
@@ -45,14 +117,24 @@ namespace Ovule.Nomad.Client
     /// <typeparam name="T"></typeparam>
     /// <param name="operation"></param>
     /// <returns></returns>
-    public abstract T Execute<T>(Expression<Action> operation);
+    public virtual T Execute<T>(Uri remoteUri, Expression<Action> operation)
+    {
+      return (T)Execute(remoteUri, operation);
+    }
 
     /// <summary>
     /// Executes a nomad method on the locally and also remotely.  
     /// </summary>
     /// <param name="operation"></param>
     /// <returns></returns>
-    public abstract void ExecuteLocalAndRemote(Expression<Action> operation);
+    public virtual void ExecuteLocalAndRemote(Uri remoteUri, Expression<Action> operation)
+    {
+      AutoResetEvent done = new AutoResetEvent(false);
+      ThreadPool.QueueUserWorkItem((state) => { Execute(remoteUri, operation); done.Set(); });
+      operation.Compile()();
+
+      done.WaitOne();
+    }
 
     #endregion IRemoteMethodExecuter
 
@@ -67,15 +149,38 @@ namespace Ovule.Nomad.Client
     /// <returns></returns>
     protected ExecuteServiceCallResult ExecuteServiceCall(Uri remoteEndpointUri, MethodCallExpression methExp, IList<ParameterVariable> parameters, byte[] rawAssembly)
     {
-      ExecuteServiceCallResult result = null;
-      if (methExp.Method.IsStatic)
-        result = new NomadWcfClient().ExecuteStaticServiceCall(rawAssembly, remoteEndpointUri, NomadMethodType.Normal, false, methExp.Method.DeclaringType, methExp.Method.Name, parameters);
-      else
+      object actOn = null;
+      if (!methExp.Method.IsStatic)
       {
         Tuple<Type, object> typeVal = ExpressionUtils.Evaluate(methExp.Object);
-        result = new NomadWcfClient().ExecuteServiceCall(rawAssembly, remoteEndpointUri, NomadMethodType.Normal, false, typeVal.Item2, methExp.Method.Name, parameters);
+        actOn = typeVal.Item2;
       }
-      return result;
+
+      return ExecuteServiceCall(methExp.Method.IsStatic, remoteEndpointUri, actOn, methExp.Method.DeclaringType, methExp.Method.Name, parameters, rawAssembly);
+    }
+
+    /// <summary>
+    /// Calls through to the server
+    /// </summary>
+    /// <param name="isStatic"></param>
+    /// <param name="remoteEndpointUri"></param>
+    /// <param name="actOn"></param>
+    /// <param name="actOnType"></param>
+    /// <param name="methodName"></param>
+    /// <param name="parameters"></param>
+    /// <param name="rawAssembly"></param>
+    /// <returns></returns>
+    protected ExecuteServiceCallResult ExecuteServiceCall(bool isStatic, Uri remoteEndpointUri, object actOn, Type actOnType, string methodName, IList<ParameterVariable> parameters, byte[] rawAssembly)
+    {
+      if (isStatic)
+      {
+        object aot = actOnType;
+        object mn = methodName;
+        object p = parameters;
+        return new NomadWcfClient().ExecuteStaticServiceCall(rawAssembly, remoteEndpointUri, NomadMethodType.Normal, false, actOnType, methodName, parameters);
+      }
+
+      return new NomadWcfClient().ExecuteServiceCall(rawAssembly, remoteEndpointUri, NomadMethodType.Normal, false, actOn, methodName, parameters);
     }
 
     /// <summary>

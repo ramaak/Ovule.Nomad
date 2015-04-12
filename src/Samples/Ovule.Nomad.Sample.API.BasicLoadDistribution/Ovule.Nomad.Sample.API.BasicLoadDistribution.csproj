@@ -4,13 +4,14 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{11F8D21C-9134-4AEF-A785-24DA5E6ECA0A}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <ProjectGuid>{84ECF8DC-49CC-4366-80CD-BED0250CB2B8}</ProjectGuid>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Ovule.Nomad.Discovery</RootNamespace>
-    <AssemblyName>Ovule.Nomad.Discovery</AssemblyName>
+    <RootNamespace>Ovule.Nomad.Sample.API.BasicLoadDistribution</RootNamespace>
+    <AssemblyName>Ovule.Nomad.Sample.API.BasicLoadDistribution</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -21,6 +22,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -30,51 +32,30 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup>
-    <StartupObject />
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Mono.Cecil">
-      <HintPath>..\packages\Mono.Cecil.0.9.5.4\lib\net40\Mono.Cecil.dll</HintPath>
-    </Reference>
-    <Reference Include="Mono.Cecil.Mdb">
-      <HintPath>..\packages\Mono.Cecil.0.9.5.4\lib\net40\Mono.Cecil.Mdb.dll</HintPath>
-    </Reference>
-    <Reference Include="Mono.Cecil.Pdb">
-      <HintPath>..\packages\Mono.Cecil.0.9.5.4\lib\net40\Mono.Cecil.Pdb.dll</HintPath>
-    </Reference>
-    <Reference Include="Mono.Cecil.Rocks">
-      <HintPath>..\packages\Mono.Cecil.0.9.5.4\lib\net40\Mono.Cecil.Rocks.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AssemblyGenerator.cs" />
-    <Compile Include="AssemblyUtils.cs" />
-    <Compile Include="MethodDiscoverer.cs" />
-    <Compile Include="NomadDiscoveryException.cs" />
-    <Compile Include="NomadMethodInfo.cs" />
-    <Compile Include="NomadModuleInfo.cs" />
-    <Compile Include="NomadTypeInfo.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
-    <None Include="packages.config" />
+    <ProjectReference Include="..\..\Ovule.Nomad.Client\Ovule.Nomad.Client.csproj">
+      <Project>{50c07475-0a00-42aa-82bf-5634ef725cb9}</Project>
+      <Name>Ovule.Nomad.Client</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Ovule.Nomad\Ovule.Nomad.csproj">
-      <Project>{27dad5d8-c1af-4a91-afa6-17f36282ff26}</Project>
-      <Name>Ovule.Nomad</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Ovule\Ovule.csproj">
-      <Project>{25d61f61-2857-47e2-b2ac-ad82cf632185}</Project>
-      <Name>Ovule</Name>
-    </ProjectReference>
+    <None Include="app.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="TestCorpus.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -49,6 +49,8 @@ namespace Ovule.Nomad.Client
   {
     #region Properties/Fields
 
+    private static readonly object _assemblyNameHashesLock = new object();
+
     private const string IsNomadDisabledConfig = "IsNomadDisabled";
     private const string NomadServerResponseTimeoutConfig = "NomadServerResponseTimeout";
     private const double DefaultNomadServerResponseTimeoutSeconds = 30;
@@ -292,17 +294,21 @@ namespace Ovule.Nomad.Client
 
       //want to tell the server the current assembly hash, if it's changed the server will want the new one
 #warning Need to check dependency hashes too.
-      string asmHash = null;
-      if (_assemblyNameHashes.ContainsKey(actOnAsmPath))
-        asmHash = _assemblyNameHashes[actOnAsmPath];
-      else
-      {
-        byte[] asmBytes = File.ReadAllBytes(actOnAsmPath);
-        byte[] hash = SHA1.Create().ComputeHash(asmBytes);
-        asmHash = Convert.ToBase64String(hash);
-        asmHash = asmHash.Replace("/", "_");
-        _assemblyNameHashes.Add(actOnAsmPath, asmHash);
-      }
+      
+        string asmHash = null;
+        lock (_assemblyNameHashesLock)//TODO: read file and create hash outside lock
+        {
+          if (_assemblyNameHashes.ContainsKey(actOnAsmPath))
+            asmHash = _assemblyNameHashes[actOnAsmPath];
+          else
+          {
+            byte[] asmBytes = File.ReadAllBytes(actOnAsmPath);
+            byte[] hash = SHA1.Create().ComputeHash(asmBytes);
+            asmHash = Convert.ToBase64String(hash);
+            asmHash = asmHash.Replace("/", "_");
+            _assemblyNameHashes.Add(actOnAsmPath, asmHash);
+          }
+        }
 
       IList<IVariable> nonLocalVaraibles = null;
       //currently it only makes sense to work on non-locals for normal exeuction methods. Relay methods don't impact upon the client 

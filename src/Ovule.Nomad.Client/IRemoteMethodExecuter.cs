@@ -23,9 +23,9 @@ namespace Ovule.Nomad.Client
 {
   public interface IRemoteMethodExecuter
   {
-    object Execute(Expression<Action> operation);
-    T Execute<T>(Expression<Action> operation);
+    object Execute(Uri remoteUri, Expression<Action> operation);
+    T Execute<T>(Uri remoteUri, Expression<Action> operation);
 
-    void ExecuteLocalAndRemote(Expression<Action> operation);
+    void ExecuteLocalAndRemote(Uri remoteUri, Expression<Action> operation);
   }
 }
