@@ -17,18 +17,17 @@ You should have received a copy of the GNU General Public License
 along with Nomad.  If not, see <http://www.gnu.org/licenses/>.
 */
 using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Threading;
+using System.Threading.Tasks;
 
 namespace Ovule.Nomad.Client
 {
-  public class ParallelRemoteMethodExecuter : IRemoteMethodExecuter, IDisposable
+  public delegate RemoteJob GetRemoteJobPartFunc(int part, int of);
+
+  public class ParallelRemoteMethodExecuter
   {
     #region Properties/Fields
 
     private Uri[] _remoteUris;
-    private CountdownEvent _countdown;
     private RemoteMethodExecuter _exec = new RemoteMethodExecuter();
 
     #endregion Properties/Fields
@@ -44,71 +43,29 @@ namespace Ovule.Nomad.Client
 
     #endregion ctors
 
-    #region IRemoteMethodExecuter
-
-    private void ExecuteAsync<T>(Uri remoteUri, Action<T> operation, T operationArg)
-    {
-      _countdown.AddCount();
-      ThreadPool.QueueUserWorkItem((state) =>
-        {
-          try
-          {
-            _exec.Execute(remoteUri, operation, operationArg);
-          }
-          finally
-          {
-            _countdown.Signal();
-          }
-        });
-    }
-
-    object IRemoteMethodExecuter.Execute(Uri remoteUri, Expression<Action> operation)
-    {
-      _countdown.AddCount();
-      try
-      {
-        object result = _exec.Execute(remoteUri, operation);
-        return result;
-      }
-      finally
-      {
-        _countdown.Signal();
-      }
-    }
-
-    T IRemoteMethodExecuter.Execute<T>(Uri remoteUri, Expression<Action> operation)
-    {
-      _countdown.AddCount();
-      try
-      {
-        T result = _exec.Execute<T>(remoteUri, operation);
-        return result;
-      }
-      finally
-      {
-        _countdown.Signal();
-      }
-    }
-
-    void IRemoteMethodExecuter.ExecuteLocalAndRemote(Uri remoteUri, Expression<Action> operation)
-    {
-      _countdown.AddCount();
-      try
-      {
-        _exec.ExecuteLocalAndRemote(remoteUri, operation);
-      }
-      finally
-      {
-        _countdown.Signal();
-      }
-    }
-
-    #endregion IRemoteMethodExecuter
-
     #region Methods
 
     /// <summary>
-    /// 
+    /// Takes a GetRemoteJobPartFunc and calls it once per remote Uri that's known so obtaining 
+    /// a RemoteJob each time.  Each RemoteJob is sent to one of the remote servers.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="getDistributedJobPart"></param>
+    /// <returns></returns>
+    public T[] DistributeOperation<T>(GetRemoteJobPartFunc getDistributedJobPart)
+    {
+      this.ThrowIfArgumentIsNull(() => getDistributedJobPart);
+      T[] result = new T[_remoteUris.Length];
+      Parallel.For(0, _remoteUris.Length, (i) =>
+      {
+        RemoteJob part = getDistributedJobPart(i + 1, _remoteUris.Length);
+        result[i] = (T)_exec.Execute(_remoteUris[i], part.Job);
+      });
+      return result;
+    }
+
+    /// <summary>
+    /// Takes an array and splits even portions of it across all known servers
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="action"></param>
@@ -119,7 +76,7 @@ namespace Ovule.Nomad.Client
     }
 
     /// <summary>
-    /// 
+    /// Takes an array and splits even portions of it across all known servers
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="action"></param>
@@ -132,48 +89,20 @@ namespace Ovule.Nomad.Client
         throw new ArgumentException("The 'data' argument contains no data");
 
       int blockSize = data.Length / _remoteUris.Length;
-      using (_countdown = new CountdownEvent(1))
+      Parallel.For(0, _remoteUris.Length, (i) =>
       {
-        for (int i = 0; i < _remoteUris.Length; i++)
-        {
-          int blockStart = i * blockSize;
-          //array might not cleanly divisible by number of URI's
-          if (i == _remoteUris.Length - 1)
-            blockSize = data.Length - blockStart;
+        int blockStart = i * blockSize;
+        //array might not cleanly divisible by number of URI's
+        if (i == _remoteUris.Length - 1)
+          blockSize = data.Length - blockStart;
 
-          T[] dataBlock = new T[blockSize];
-          Array.Copy(data, blockStart, dataBlock, 0, blockSize);
+        T[] dataBlock = new T[blockSize];
+        Array.Copy(data, blockStart, dataBlock, 0, blockSize);
 
-          ExecuteAsync<T[]>(_remoteUris[i], action, dataBlock);
-        }
-        _countdown.Signal();
-
-        if (timeout.GetValueOrDefault(TimeSpan.Zero).TotalMilliseconds > 0)
-          Wait(timeout.Value);
-        else
-          Wait();
-      }
-    }
-
-    public void Wait()
-    {
-      _countdown.Wait();
-    }
-
-    public void Wait(TimeSpan timeout)
-    {
-      _countdown.Wait(timeout);
+        _exec.Execute(_remoteUris[i], action, dataBlock);
+      });
     }
 
     #endregion Methods
-
-    #region IDisposable
-
-    public void Dispose()
-    {
-      _countdown.Dispose();
-    }
-
-    #endregion IDisposable
   }
 }
