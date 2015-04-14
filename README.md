@@ -87,7 +87,7 @@ class Program
       ParallelRemoteMethodExecuter exec = new ParallelRemoteMethodExecuter(remoteUris);
       string[] corpus = File.ReadAllLines("TestCorpus.txt");
 
-      //this will result in 'copus' being split evenly and the parts being sent to 
+      //this will result in 'corpus' being split evenly and the parts being sent to 
       //each of the 4 Uri's shown above
       exec.DistributeArray<string>(PrintLines, corpus);
 
@@ -130,7 +130,12 @@ public class CharCounter
       ParallelRemoteMethodExecuter exec = new ParallelRemoteMethodExecuter(_remoteUris);
 
       int result = 0;
+
+      //GetRemoteJobPart will be called once per remote node with values like 1/4, 2/4, etc.
+      //DistributeOperation sends each RemoteJob to a seperate node and captures all results
       int[] results = exec.DistributeOperation<int>(GetRemoteJobPart);
+
+      //a further simple reduce to sum the char counts
       foreach (int res in results)
         result += res;
       return result;
@@ -143,6 +148,7 @@ public class CharCounter
       if (part == of)
         blockSize = _corpusLength - blockSize;
 
+      //this RemoteJob will be executed on one of the remote notes
       return new RemoteJob(() => MapReduce(_countChar, _corpusPath, blockStart, blockSize));
     }
 
@@ -216,7 +222,7 @@ The P2P features (which are available in current version) will be expanded upon 
 The main feature here would be decentralised load balancing.  Each “server” node would advertise their capacity, predicted future capacity, willingness to accept additional load, etc.
 
 #Release v4.0
-To be honest if I get past v1.1 alive I'll be happy!!
+To be honest if I get past v1.0 alive I'll be happy!!
 
 #3rd Party Components Nomad Uses
 
