@@ -1,6 +1,8 @@
 ###News
 2015-04-14
-Major changes have been checked in.  Due to feedback Nomad is no longer a tool but a framework.  See sample code below and take a look at checked in sample projects.  Updated videos to follow soon.
+Fairly major changes have been made.  Due to feedback Nomad is no longer a tool but a framework.  See sample code below and take a look at checked in sample projects.  Updated videos to follow soon.
+
+A start has been made on the Wiki!  Please take a look at the examples [here](https://github.com/tony-dinucci/Ovule.Nomad/wiki)
 
 Follow on Twitter: [@OvuleNomad](https://twitter.com/OvuleNomad)
 
@@ -16,7 +18,7 @@ Nomad is an easy to use .Net distributed execution framework which also supports
 
 Please be aware that Nomad is currently not stable and there is a lot of refinement, optimisation and testing required before it can be deemed production worthy. 
 
-If you feel you could help contribute towards this project in any way please get in touch.
+I love to hear feedback, positive or negative - constructive criticism is what is actually the most valuable for me at this stage!  Please get in touch if there's anything you'd like to say.  Also, if you feel you could help with this project in any way please give me a shout.
 
 ###What/Why?
 In the simplest sense Nomad lets you distribute the execution of code across multiple processes (typically on remote machines but not necessarily). Not only is the code executed remotely but it's executed within the context of the original process, i.e. memory looks the same to both processes (class member fields, properties, etc.) and both are free to modify all memory.  Once execution of the remote code completes the local process context is synchronised so that things appear as if all code executed locally.  Context synchronisation is kept efficient by only considering memory that can possibly be touched by the code being distributed.
@@ -27,184 +29,6 @@ In addition to allowing for easy distributed execution it can be used to very ef
 
 ###Security Warning
 Under the hood Nomad uses WCF (by default) and so all security features of WCF are available.  Having said this, Nomad can be used for developing systems where remote nodes have no prior knowledge of the code they are going to execute.  This obviously places those nodes in a very dangerous position.  Security is being taken very seriously and v1.0 won't be released until safeguards are in place but in the meantime please be careful.  
-
-###Examples
-The following snippets show basic single class programs that can be executed as distributed applications with Nomad.  Other than the missing using directives (left out for brevity) the code you see is all that's needed.
-
-The repo contains sample projects for each of these and more.  It also contains a "Stock Server" project which you must run in order for the samples to work - you don't need to touch the server code.
-
-#####Hello World
-
-```csharp 
-class Program
-  {
-    static void Main(string[] args)
-    {
-      BasicRemoteMethodExecuter exec = new BasicRemoteMethodExecuter(new Uri("net.tcp://localhost:8557/NomadService"));
-
-      //as the method name suggests, SayHello() is executed both on the local machine and remotely
-      exec.ExecuteLocalAndRemote(() => SayHello());
-      Console.ReadLine();
-    }
-
-    static void SayHello()
-    {
-      Console.WriteLine("Hello from process '{0}'!", System.Diagnostics.Process.GetCurrentProcess().ProcessName);
-    }
-  }
-```
-
-#####Basic Distributed Memory 
-
-```csharp 
-class Program
-  {
-    private static string ProcessName { get; set; }
-    private static string _alphabet;
-
-    static void Main(string[] args)
-    {
-      BasicRemoteMethodExecuter exec = new BasicRemoteMethodExecuter(new Uri("net.tcp://localhost:8557/NomadService"));
-
-      _alphabet = "abcdefg";
-
-      //when this method runs remotely it will see _alphabet with the value "abcdefg"
-      exec.Execute(() => ProcessMemberVariables());
-      Console.WriteLine("Process name is '{0}'.{1}Reversed alphabet is '{2}'", ProcessName, Environment.NewLine, _alphabet);
-      Console.ReadLine();
-    }
-
-    static void ProcessMemberVariables()
-    {
-      //the caller will see ProcessName read as the remote host process name
-      ProcessName = System.Diagnostics.Process.GetCurrentProcess().ProcessName;
-
-      //the caller will see this change to _alphabet
-      _alphabet = new string(_alphabet.Reverse().ToArray());
-    }
-  }
-```
-
-#####Basic Load Distribution
-You will need to run 4 copies of the Stock Server, each listening on a different port for this one.  Move each copy of the server to a different machine/directory.  There is a configuration file which contains the port number it'll listen on.
-
-```csharp 
-class Program
-  {
-    static void Main(string[] args)
-    {
-      Uri[] remoteUris = new Uri[] { 
-        new Uri("net.tcp://localhost:8557/NomadService"), new Uri("net.tcp://localhost:8558/NomadService"), 
-        new Uri("net.tcp://localhost:8559/NomadService"), new Uri("net.tcp://localhost:8560/NomadService")
-      };
-      ParallelRemoteMethodExecuter exec = new ParallelRemoteMethodExecuter(remoteUris);
-      string[] corpus = File.ReadAllLines("TestCorpus.txt");
-
-      //this will result in 'corpus' being split evenly and the parts being sent to 
-      //each of the 4 Uri's shown above
-      exec.DistributeArray<string>(PrintLines, corpus);
-
-      Console.WriteLine("Done");
-      Console.ReadLine();
-    }
-
-    static void PrintLines(string[] lines)
-    {
-      Console.WriteLine("Line Count: {0}", lines.Length);
-      Console.WriteLine("1st line: {0}", lines[0]);
-      Console.WriteLine("Last line: {0}", lines[lines.Length - 1]);
-    }
-  }
-```
-
-#####Basic MapReduce
-This one too requires 4 copies of the Stock Server to be running.
-
-```csharp
-public class CharCounter
-  {
-    private Uri[] _remoteUris;
-    private string _corpusPath;
-    private char _countChar;
-    private int _corpusLength;
-
-    public CharCounter()
-    {
-      _remoteUris = new Uri[] { 
-        new Uri("net.tcp://localhost:8557/NomadService"), new Uri("net.tcp://localhost:8558/NomadService"),
-        new Uri("net.tcp://localhost:8559/NomadService"), new Uri("net.tcp://localhost:8560/NomadService")
-      };
-    }
-
-    public int Run(string corpusPath, char countChar)
-    {
-      _corpusPath = corpusPath;
-      _countChar = countChar;
-      _corpusLength = (int)new FileInfo(_corpusPath).Length;
-      ParallelRemoteMethodExecuter exec = new ParallelRemoteMethodExecuter(_remoteUris);
-
-      int result = 0;
-
-      //GetRemoteJobPart will be called once per remote node with values like 1/4, 2/4, etc.
-      //DistributeOperation sends each RemoteJob to a seperate node and captures all results
-      int[] results = exec.DistributeOperation<int>(GetRemoteJobPart);
-
-      //a further simple reduce to sum the char counts
-      foreach (int res in results)
-        result += res;
-      return result;
-    }
-
-    private RemoteJob GetRemoteJobPart(int part, int of)
-    {
-      int blockSize = _corpusLength / of;
-      int blockStart = (part - 1) * blockSize;
-      if (part == of)
-        blockSize = _corpusLength - blockSize;
-
-      //this RemoteJob will be executed on one of the remote notes
-      return new RemoteJob(() => MapReduce(_countChar, _corpusPath, blockStart, blockSize));
-    }
-
-    private int MapReduce(char countChar, string filePath, int startPos, int length)
-    {
-      int result = Reduce(countChar, Map(filePath, startPos, length));
-
-      Console.WriteLine("Counted '{0}' occurences of '{1}'", result, countChar);
-      return result;
-    }
-
-    private char[] Map(string filePath, int startPos, int length)
-    {
-      using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
-      {
-        using (StreamReader rdr = new StreamReader(fs))
-        {
-          char[] buffer = new char[length];
-          fs.Position = startPos;
-          int readChars = rdr.ReadBlock(buffer, 0, length);
-
-          Console.WriteLine("Read '{0}' characters", readChars);
-          return buffer;
-        }
-      }
-    }
-
-    private int Reduce(char searchChar, char[] chars)
-    {
-      int charCount = 0;
-      foreach (char c in chars)
-      {
-        if (c == searchChar)
-          charCount++;
-      }
-      return charCount;
-    }
-  }
-```
-
-###Videos
-Due to recent changes the original videos are now out of date.  New ones will be made over the next few days (2015-04-14)  
 
 ###Potential 
 There is huge future potential for Nomad above what's already been described.  Here are just a few use cases:
