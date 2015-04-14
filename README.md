@@ -1,129 +1,244 @@
-# News
-
-2015-04-11
-After collating feedback on the project (which was the main purpose of publishing the preview) some fairly big changes are now underway.  Rather than being a tool Nomad will become a framework, which will give developers more flexibility and also make them feel more in control.  To enjoy the main benefits of this change the roadmap is going to change a bit.  What was planned for release v1.1 is no longer required but features for release v1.5 and v2.0 will be brought forward to the first release.  Things aren't too far from here as it stands.  This page will be updated soon to reflect the changes and a paper is planned.
+###News
+2015-04-14
+Major changes have been checked in.  Due to feedback Nomad is no longer a tool but a framework.  See sample code below and take a look at checked in sample projects.  Updated videos to follow soon.
 
 Follow on Twitter: [@OvuleNomad](https://twitter.com/OvuleNomad)
 
-# Ovule.Nomad [.Net]
-With Nomad distributed application code is cleaner and leaner, easier to write, understand and maintain.  In addition to this Nomad can demonstrably increase overall distributed application performance while at the same time allowing for code reuse maximisation.
+###Ovule.Nomad [.Net]
+Nomad is an easy to use .Net distributed execution framework which also supports distributed memory.  Currently the main benefits it provides are: 
 
-Nomad is not a framework, it is a tool which enforces no constraints on developers.  In the most basic use-case you can convert a single assembly with a single type into a distributed application (see the Hello World and P2P videos below).  More typically you will develop well-structured applications consisting of a number of assemblies and choose which parts (assemblies, types, methods) you want to execute remotely (see Nomad Assemblies video below).  
+* The number of calls over the network can be reduced dramatically, with very little effort.
+* There is support for distributed memory.
+* Large workloads can be split across clusters/grids using an implementation of MapReduce with virtually no setup.
+* It happily co-exists with other technologies such as WCF and so can be used in your existing projects.
+* It allows for very rapid development of distributed systems.
+* It is possible to fall-back into an "offline mode" if the network connection goes down.
 
-With Nomad you develop applications as if they were standalone and then pass them through the Nomad Processor.  It creates a server for you from the aspects you choose to execute remotely and a client configured to communicate with it.  In addition to this, since you develop the application as if it were standalone it's possible to fall-back into standalone mode should network connectivity fail, making it perfectly suited for occasionally-connected applications.  If the methods you want to execute remotely access class level properties or fields this is no problem, Nomad works these things out for you keeping your data consistent.
+Please be aware that Nomad is currently not stable and there is a lot of refinement, optimisation and testing required before it can be deemed production worthy. 
 
-The overall number of network calls can be dramatically reduced with Nomad, with much less effort than with traditional means of distributed systems development while at the same time keeping your code base very lean.  If you find a client side method is making a number of trips to the server you can very easily make that method run on the server too, meaning only a single network transaction is required (see the "Chatty and Chunky" video link below).  You'll never have to craft non-functional code purely to reduce the number of server trips. 
+If you feel you could help contribute towards this project in any way please get in touch.
 
-Nomad comes with a practically flat learning curve and there is very little needed in the way of instructions.  However, many developers will rightly want to understand what is going on under the hood and so documentation is needed.  Information will be added to the Wiki over the coming weeks in preparation for the first formal release.
+###What/Why?
+In the simplest sense Nomad lets you distribute the execution of code across multiple processes (typically on remote machines but not necessarily). Not only is the code executed remotely but it's executed within the context of the original process, i.e. memory looks the same to both processes (class member fields, properties, etc.) and both are free to modify all memory.  Once execution of the remote code completes the local process context is synchronised so that things appear as if all code executed locally.  Context synchronisation is kept efficient by only considering memory that can possibly be touched by the code being distributed.
 
-Please be aware that Nomad is currently available only for preview purposes.  There is still work to be done before it reaches version 1.0 and therefore shouldn’t be used in applications intended for end-users. 
+The types of application that can be developed range from basic client/server or P2P applications to massively distributed systems using MapReduce to spread workload effectively over a large number of machines.  See the code snippets below for an example of how a distributed MapReduce system can be achieved with a single class.
 
-If you feel you could help contribute towards this project in any way please get in touch.  Extensive testing is required in order to take the project to the v1.0 stage and the more black-box testers there are the merrier ;)    
+In addition to allowing for easy distributed execution it can be used to very efficiently keep the number of network transactions under control.  If you want to execute a number of methods on some remote machine then you can just group these and execute them with a single trip over the network.  You can achieve the reusability of a chatty server interface but with the performance of a chunky one.  
 
-#What's so different to RPC, Web Services, etc?
+###Security Warning
+Under the hood Nomad uses WCF (by default) and so all security features of WCF are available.  Having said this, Nomad can be used for developing systems where remote nodes have no prior knowledge of the code they are going to execute.  This obviously places those nodes in a very dangerous position.  Security is being taken very seriously and v1.0 won't be released until safeguards are in place but in the meantime please be careful.  
 
-Nomad does have similarities to RPC technologies like .Net Remoting and web services technologies like WCF.  In reality it is both...and neither.  It's even easier to use than Remoting, you have the security and performance of WCF and also it can be extended upon even more, meaning you’re not limited to protocols like HTTP, TCP, Named Pipes and UDP.   
+###Examples
+The following snippets show basic single class programs that can be executed as distributed applications with Nomad.  Other than the missing using directives (left out for brevity) the code you see is all that's needed.
 
-Nomad approaches things from a slightly different angle to the norm.  Normally with distributed applications an instance of an object lives within a single process.  You may be able to access the object from a seperate process and make requests of it however you won't have some methods within the same instance exeucting in process X and others executing within process Y.  You may be asking yourself, "Why on earth would I want to do that!?".  Well, a common compromise that must be made is that of reusability versus performance.  For optimimum reusability we really want our server to expose lots of small methods which we can use in many different scenarios, where we call them in different combinations.  This obviously isn't great for performance as each time we make a call over the network it comes at a price.  For optimum performance we want chunky methods on the server that perform a lot of work per network transaction. This isn't good for reusability as these large tasks are likely only useful in one or two situations.  Another unfortunate aspect of this "chunky" design is that we're writing methods that serve no functional purpose.  They add no value to our types however they are costing us time/money to develop.
+The repo contains sample projects for each of these and more.  It also contains a "Stock Server" project which you must run in order for the samples to work - you don't need to touch the server code.
 
-With Nomad this compromise doesn't have to be made.  If you want a client side method to make multiple calls to a server you can just decorate it with a [NomadMethod] attribute and this means it'll execute remotely too (even though other methods on the object don't).  There will be only one network transaction.  If your client side method calls other methods or accesses class member variables this is absolutely fine as Nomad will manage this for you.  To your client side process it will appear that the method executed locally even though all work was carried out on the server.  You no longer have to write code just to reduce the number of network connections and therefor your codebase is cleaner, less bloated and easier to understand and maintain.
-
-You don't have to make the decision to use Nomad up front - it's not a framework.  An assembly, type or method that you write today may not benefit from the features offered by Nomad.  If however the story's different tomorrow then just decorate the assembly, type or method with the appropriate Nomad attribute and you’re done.  Once the attribute is in place the rest is handled for you.
-
-#Hello World
-
-This is as simple as it get's!  Main(...) is executed locally and SayHello() on a server.  Download the samples from the respository and view the videos for more interesting examples.
+#####Hello World
 
 ```csharp 
 class Program
-{
-  static void Main(string[] args)
   {
-    SayHello();
-  }
+    static void Main(string[] args)
+    {
+      BasicRemoteMethodExecuter exec = new BasicRemoteMethodExecuter(new Uri("net.tcp://localhost:8557/NomadService"));
 
-  //because of this attribute the method will execute remotely
-  [NomadMethod] 
-  static void SayHello()
-  {
-    Console.WriteLine("Hello from process '{0}'!", Process.GetCurrentProcess().ProcessName);
+      //as the method name suggests, SayHello() is executed both on the local machine and remotely
+      exec.ExecuteLocalAndRemote(() => SayHello());
+      Console.ReadLine();
+    }
+
+    static void SayHello()
+    {
+      Console.WriteLine("Hello from process '{0}'!", System.Diagnostics.Process.GetCurrentProcess().ProcessName);
+    }
   }
-}
 ```
-#Forum
 
-http://ost.io/@tony-dinucci/Ovule.Nomad
+#####Basic Distributed Memory 
 
-#Videos
+```csharp 
+class Program
+  {
+    private static string ProcessName { get; set; }
+    private static string _alphabet;
 
-The following (very rushed) videos have been made available.  Hopefully they give you a reasonable idea of this projects potential.  More to follow in due course.
+    static void Main(string[] args)
+    {
+      BasicRemoteMethodExecuter exec = new BasicRemoteMethodExecuter(new Uri("net.tcp://localhost:8557/NomadService"));
 
-1: First Steps - https://youtu.be/T0_OzOTGGVc
+      _alphabet = "abcdefg";
 
-2: Hello World - https://youtu.be/w6gn6q2Rpeg
+      //when this method runs remotely it will see _alphabet with the value "abcdefg"
+      exec.Execute(() => ProcessMemberVariables());
+      Console.WriteLine("Process name is '{0}'.{1}Reversed alphabet is '{2}'", ProcessName, Environment.NewLine, _alphabet);
+      Console.ReadLine();
+    }
 
-3: Member Variables - https://youtu.be/EKuMy4-OJWM
+    static void ProcessMemberVariables()
+    {
+      //the caller will see ProcessName read as the remote host process name
+      ProcessName = System.Diagnostics.Process.GetCurrentProcess().ProcessName;
 
-4: Nomad Assemblies - https://youtu.be/SnNpfZM3Lxo
+      //the caller will see this change to _alphabet
+      _alphabet = new string(_alphabet.Reverse().ToArray());
+    }
+  }
+```
 
-5: P2P Part 1 - https://youtu.be/7mUOyC2YB1c
+#####Basic Load Distribution
+You will need to run 4 copies of the Stock Server, each listening on a different port for this one.  Move each copy of the server to a different machine/directory.  There is a configuration file which contains the port number it'll listen on.
 
-   P2P Part 2 - https://youtu.be/5rg8CdcZdCE
-   
-   P2P Part 3 - https://youtu.be/bF0GFtpQkUw
-   (Please note, that unless you update the configuration files - as per WCF specification - you will only be able to send files under 64KB)
-   
-6: Chatty and Chunky - https://youtu.be/8WiLAJ3ufj4
+```csharp 
+class Program
+  {
+    static void Main(string[] args)
+    {
+      Uri[] remoteUris = new Uri[] { 
+        new Uri("net.tcp://localhost:8557/NomadService"), new Uri("net.tcp://localhost:8558/NomadService"), 
+        new Uri("net.tcp://localhost:8559/NomadService"), new Uri("net.tcp://localhost:8560/NomadService")
+      };
+      ParallelRemoteMethodExecuter exec = new ParallelRemoteMethodExecuter(remoteUris);
+      string[] corpus = File.ReadAllLines("TestCorpus.txt");
 
-#Potential 
-There is huge potential for Nomad above what's already been described.  Here are just a few use cases:
+      //this will result in 'corpus' being split evenly and the parts being sent to 
+      //each of the 4 Uri's shown above
+      exec.DistributeArray<string>(PrintLines, corpus);
 
-1.	Super-Cheap Super-Computing: There are already frameworks in existence for distributed execution, they all however require developers to adhere to a framework and therefore come with considerable cost (at least in terms of time to learn and being locked into the framework afterwards). Nomad is not a framework and distributed execution can be acheived easily at at an extremely low cost.  In addition to this, there will be opportunities such as building a farm of Raspberry Pi’s.
+      Console.WriteLine("Done");
+      Console.ReadLine();
+    }
 
-2.	Mobile Frameworks: It is possible for the client to execute nomadic methods itself if it chooses to, instead of asking a server to execute them.  This means mobile frameworks could be developed quite easily.  For example, code can be written to write to a form of data store that can live on the client and server.  If the client is online then it executes the method on the server, if it goes offline it executes the method on itself.  Obviously data synchronisation would have to be implemented separately.
+    static void PrintLines(string[] lines)
+    {
+      Console.WriteLine("Line Count: {0}", lines.Length);
+      Console.WriteLine("1st line: {0}", lines[0]);
+      Console.WriteLine("Last line: {0}", lines[lines.Length - 1]);
+    }
+  }
+```
+
+#####Basic MapReduce
+This one too requires 4 copies of the Stock Server to be running.
+
+```csharp
+public class CharCounter
+  {
+    private Uri[] _remoteUris;
+    private string _corpusPath;
+    private char _countChar;
+    private int _corpusLength;
+
+    public CharCounter()
+    {
+      _remoteUris = new Uri[] { 
+        new Uri("net.tcp://localhost:8557/NomadService"), new Uri("net.tcp://localhost:8558/NomadService"),
+        new Uri("net.tcp://localhost:8559/NomadService"), new Uri("net.tcp://localhost:8560/NomadService")
+      };
+    }
+
+    public int Run(string corpusPath, char countChar)
+    {
+      _corpusPath = corpusPath;
+      _countChar = countChar;
+      _corpusLength = (int)new FileInfo(_corpusPath).Length;
+      ParallelRemoteMethodExecuter exec = new ParallelRemoteMethodExecuter(_remoteUris);
+
+      int result = 0;
+
+      //GetRemoteJobPart will be called once per remote node with values like 1/4, 2/4, etc.
+      //DistributeOperation sends each RemoteJob to a seperate node and captures all results
+      int[] results = exec.DistributeOperation<int>(GetRemoteJobPart);
+
+      //a further simple reduce to sum the char counts
+      foreach (int res in results)
+        result += res;
+      return result;
+    }
+
+    private RemoteJob GetRemoteJobPart(int part, int of)
+    {
+      int blockSize = _corpusLength / of;
+      int blockStart = (part - 1) * blockSize;
+      if (part == of)
+        blockSize = _corpusLength - blockSize;
+
+      //this RemoteJob will be executed on one of the remote notes
+      return new RemoteJob(() => MapReduce(_countChar, _corpusPath, blockStart, blockSize));
+    }
+
+    private int MapReduce(char countChar, string filePath, int startPos, int length)
+    {
+      int result = Reduce(countChar, Map(filePath, startPos, length));
+
+      Console.WriteLine("Counted '{0}' occurences of '{1}'", result, countChar);
+      return result;
+    }
+
+    private char[] Map(string filePath, int startPos, int length)
+    {
+      using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+      {
+        using (StreamReader rdr = new StreamReader(fs))
+        {
+          char[] buffer = new char[length];
+          fs.Position = startPos;
+          int readChars = rdr.ReadBlock(buffer, 0, length);
+
+          Console.WriteLine("Read '{0}' characters", readChars);
+          return buffer;
+        }
+      }
+    }
+
+    private int Reduce(char searchChar, char[] chars)
+    {
+      int charCount = 0;
+      foreach (char c in chars)
+      {
+        if (c == searchChar)
+          charCount++;
+      }
+      return charCount;
+    }
+  }
+```
+
+###Videos
+Due to recent changes the original videos are now out of date.  New ones will be made over the next few days (2015-04-14)  
+
+###Potential 
+There is huge future potential for Nomad above what's already been described.  Here are just a few use cases:
+
+1.	Super Cheap "Super Computing": Create a cluster of Raspberry Pi's running Mono (or when Windows 10 is released to it). 
+
+2.	Mobile Frameworks: It's currently possible to execute code both locally and remotely.  This offers the potential for falling into an "offline mode" when connections drop.   
 
 3.	Peer-to-peer networking: Basic P2P features are already built in, see the Chat sample application.  Also see the Roadmap for hints on how this could be taken as far as having decentralised “processing marts” where nodes can bid for rights to execute operations on behalf of other nodes.
 
-#Release Roadmap
+###Release Roadmap
 What follows is the planned release roadmap – which is admittedly very ambitious given the level of resources (i.e. currently a single developer with very limited free time) available.  
 
-The fundamental aim  of this project is that writing distributed software should be as easy as it is to write standalone software.  None of the features developed for any Nomad release will affect the way you write software.  A certain amount of configuration (outwith application code) may be required for certain features but simplicity will always be the goal.  
+Timescales cannot be given however it is likely to be at months rather than days before v1.0 is available.
 
-Timescales cannot be given however it should not be too long before version 1.5 is available.  Each major version after this may take considerable time unless additional resources can be sourced.
-
-#Release 0.7.1 – Available in Dev branch
+#####Release 0.8.0 – Available in Dev branch
 This is the current preview release and includes all features described in the documentation and demonstrated in the samples.  It is not to be considered stable so should only be used for experimentation.
 
-#Release v1.0 – (ETA: fairly soon)
-A complete review of the existing codebase is needed, unit testing to be caught up and extensive regression testing (with MS .Net and Mono).  Some improvements to the Processor GUI are planned made however no plans for new features.
+#####Release v1.0 – (ETA: maybe a couple of months)
+A complete review of the existing codebase is needed, refinement, unit testing to be caught up and extensive regression testing.  
 
-#Release v1.1
-The processor backend and GUI will be enhanced so that users have a visual representation of the assemblies, types and methods that their application consists of.  Through the GUI they will be able to choose which aspects to make nomadic.  This will remove the need for the current [NomadMethod], [NomadType] and [NomadAssembly] attributes so developers won’t be required to reference any Nomad assemblies.  The big benefit here is that Nomad will impose no requirements on developers and is therefore purely a tool.  This also offers the opportunity to use Nomad with programs where the source code is unavailable – it will be up to the developer to ensure they are not breaking any contracts/laws by doing this!
+#####Release v1.1
+The ability to pass parameters to nomadic methods by reference and to have updates to these references reflected on the client is to be completed.  
 
-#Release v1.2
-The ability to pass parameters to nomadic methods by reference and to have updates to these references reflected on the client is to be completed.  Also the option to make the client aware of events that fire in nomadic methods will be provided.
+#####Release v2.0
+The P2P features (which are available in current version) will be expanded upon and routing functionality built in.  This will allow peers to effectively construct a decentralised network.  This routing facility and the allowance for dynamic execution would offer huge opportunities.   
 
-#Release v1.5
-The main enhancement planned for this release is assembly pruning.  Currently the assembly that’s generated for placement on a server may contain a lot of code that will never be required.  When pruning has been fully implemented this assembly will contain only elements which are useful, reducing the overall server assembly size (potentially dramatically depending on the use case).  Apart from the obvious benefit this will also help with a later feature – which is to allow for nomadic methods to be sent to servers dynamically (as opposed to the server having a static copy of all code it can execute).
-
-#Release v2.0
-The ability to dynamically submit nomadic methods to servers will be provided.  This obviously opens a large can of worms in terms of security.  It is currently envisaged that servers will advertise the amount of risk they are willing to take.  One server may choose to disallow any dynamic code while another may allow anything bar registry access.  
-
-#Release v3.0
-The P2P features (which are available in current version) will be expanded upon and routing functionality built in.  This will allow peers to effectively construct a decentralised network.  This routing facility and the allowance for dynamic execution would offer huge opportunities.  Just one possibility is a “processing mart” where peers send requests to execute operations through the network and peers bid for execution rights.  
-
-The use of the language here should not be taken to mean that the end goal is to remove traditional servers completely.  An organisation may want to have a collection of high-spec servers which execute all nomadic methods and this routing functionality is a stepping stone towards decentralised load balancing.
-
-#Release v3.5
+#####Release v3.0
 The main feature here would be decentralised load balancing.  Each “server” node would advertise their capacity, predicted future capacity, willingness to accept additional load, etc.
-This again takes things a step closer to having a “processing mart” however the immediate use would be load balancing within a controlled environment.  
 
-Just one opportunity this functionality allows is for super-cheap-super-computing.  With Windows moving to the likes of the Raspberry Pi it will be possible to build a “processing farm” from a collection of cheap Pi’s.
+#####Release v4.0
+To be honest if I get past v1.0 alive I'll be happy!!
 
-#Release v4.0
-Let’s wait and see!!
-
-#3rd Party Components Nomad Uses
+###3rd Party Components Nomad Uses
 
 Mono.Cecil - https://github.com/jbevain/cecil
 
