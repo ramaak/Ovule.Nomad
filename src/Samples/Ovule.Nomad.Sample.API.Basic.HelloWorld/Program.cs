@@ -9,6 +9,7 @@ namespace Ovule.Nomad.Sample.API.Basic.HelloWorld
     {
       BasicRemoteMethodExecuter exec = new BasicRemoteMethodExecuter(new Uri("net.tcp://localhost:8557/NomadService"));
 
+      //as the method name suggests, SayHello() is executed both on the local machine and remotely
       exec.ExecuteLocalAndRemote(() => SayHello());
       Console.ReadLine();
     }

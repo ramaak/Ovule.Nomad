@@ -10,7 +10,10 @@ namespace Ovule.Nomad.Sample.API.Basic.Chain
       BasicRemoteMethodExecuter exec = new BasicRemoteMethodExecuter(new Uri("net.tcp://localhost:8557/NomadService"));
 
       string seed = "Hello";
+      //MethodOne(...) is executed remotely, so are the methods it call, i.e. MethodTwo(...) and MethodThree(...)
       Console.WriteLine(exec.Execute(() => MethodOne(seed)));
+
+      //The following calls are executed on the client
       Console.WriteLine(MethodTwo(seed));
       Console.WriteLine(MethodThree(seed));
 

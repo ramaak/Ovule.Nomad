@@ -27,7 +27,12 @@ namespace Ovule.Nomad.Sample.MapReduce.API.Proto
       ParallelRemoteMethodExecuter exec = new ParallelRemoteMethodExecuter(_remoteUris);
 
       int result = 0;
+
+      //GetRemoteJobPart will be called once per remote node with values like 1/4, 2/4, etc.
+      //DistributeOperation sends each RemoteJob to a seperate node and captures all results
       int[] results = exec.DistributeOperation<int>(GetRemoteJobPart);
+
+      //a further simple reduce to sum the char counts
       foreach (int res in results)
         result += res;
       return result;
@@ -40,6 +45,7 @@ namespace Ovule.Nomad.Sample.MapReduce.API.Proto
       if (part == of)
         blockSize = _corpusLength - blockSize;
 
+      //this RemoteJob will be executed on one of the remote notes
       return new RemoteJob(() => MapReduce(_countChar, _corpusPath, blockStart, blockSize));
     }
 

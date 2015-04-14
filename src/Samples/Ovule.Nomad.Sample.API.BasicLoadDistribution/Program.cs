@@ -14,6 +14,9 @@ namespace Ovule.Nomad.Sample.API.BasicLoadDistribution
       };
       ParallelRemoteMethodExecuter exec = new ParallelRemoteMethodExecuter(remoteUris);
       string[] corpus = File.ReadAllLines("TestCorpus.txt");
+
+      //this will result in 'corpus' being split evenly and the parts being sent to 
+      //each of the 4 Uri's shown above
       exec.DistributeArray<string>(PrintLines, corpus);
 
       Console.WriteLine("Done");
