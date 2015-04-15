@@ -30,6 +30,8 @@ In addition to allowing for easy distributed execution it can be used to very ef
 ###Security Warning
 Under the hood Nomad uses WCF (by default) and so all security features of WCF are available.  Having said this, Nomad can be used for developing systems where remote nodes have no prior knowledge of the code they are going to execute.  This obviously places those nodes in a dangerous position.  Security is being taken very seriously and v1.0 won't be officially released until safeguards are in place but obviously in the meantime don't put it into production.  
 
+At present there also isn't much in they way of recovering from failures.  This likely won't be addressed in the v1.0 release which means developers are responsible for this.  It will be addressed before long though.  
+
 ###Potential 
 There is huge future potential for Nomad above what's already been described.  Here are just a few use cases:
 
@@ -50,8 +52,8 @@ This is the current preview release and includes all features described in the d
 #####Release v1.0 – (ETA: maybe a couple of months)
 A complete review of the existing codebase is needed, refinement, unit testing to be caught up and extensive regression testing.  
 
-#####Release v1.1
-The ability to pass parameters to nomadic methods by reference and to have updates to these references reflected on the client is to be completed.  
+#####Release v1.5
+The ability to pass parameters to nomadic methods by reference and to have updates to these references reflected on the client is to be completed.  At least basic mechanisms facilitating recovery from failures. 
 
 #####Release v2.0
 The P2P features (which are available in current version) will be expanded upon and routing functionality built in.  This will allow peers to effectively construct a decentralised network.  This routing facility and the allowance for dynamic execution would offer huge opportunities.   
