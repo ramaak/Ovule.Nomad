@@ -9,26 +9,26 @@ Follow on Twitter: [@OvuleNomad](https://twitter.com/OvuleNomad)
 ###Ovule.Nomad [.Net]
 Nomad is an easy to use .Net distributed execution framework which also supports distributed memory.  Currently the main benefits it provides are: 
 
-* The number of calls over the network can be reduced dramatically, with very little effort.
-* There is support for distributed memory.
-* Large workloads can be split across clusters/grids using an implementation of MapReduce with virtually no setup.
-* It happily co-exists with other technologies such as WCF and so can be used in your existing projects.
+* Network utilisation while maintaining code flexibility can be optimised - what would typically involve multiple network trips with traditional applications can be aceived with a single trip using Nomad.
+* Distributed memory is supported.
+* Large workloads can be split across clusters/grids using an implementation of MapReduce with virtually no setup - you are also free to develop your own algorithms.
+* It happily co-exists with existing technologies such as WCF and so can be used in existing projects.
 * It allows for very rapid development of distributed systems.
 * It is possible to fall-back into an "offline mode" if the network connection goes down.
 
-Please be aware that Nomad is currently not stable and there is a lot of refinement, optimisation and testing required before it can be deemed production worthy. 
+Please be aware that Nomad is currently not stable and there is a lot of refinement, optimisation and testing required before it can be deemed production worthy. The code has been released at this early stage so that community feedback can be gathered, helping to move it forward in the most positive direction.
 
-I love to hear feedback, positive or negative - constructive criticism is what is actually the most valuable for me at this stage!  Please get in touch if there's anything you'd like to say.  Also, if you feel you could help with this project in any way please give me a shout.
+I love to hear feedback, positive or negative - constructive criticism is what is actually the most valuable to the project at this stage!  Please get in touch if there's anything you'd like to say.  Also, if you feel you could help with this project in any way please let me know.
 
 ###What/Why?
-In the simplest sense Nomad lets you distribute the execution of code across multiple processes (typically on remote machines but not necessarily). Not only is the code executed remotely but it's executed within the context of the original process, i.e. memory looks the same to both processes (class member fields, properties, etc.) and both are free to modify all memory.  Once execution of the remote code completes the local process context is synchronised so that things appear as if all code executed locally.  Context synchronisation is kept efficient by only considering memory that can possibly be touched by the code being distributed.
+In the simplest sense Nomad lets you distribute the execution of code across multiple processes (typically on remote machines but not necessarily). Not only is code execution distributed but memory is too, meaning class member fields and properties are kept synchronised across disparate processes.  To the master process it will appear as if all code executed within it, even though it may have been spread across many machines.    
 
-The types of application that can be developed range from basic client/server or P2P applications to massively distributed systems using MapReduce to spread workload effectively over a large number of machines.  See the code snippets below for an example of how a distributed MapReduce system can be achieved with a single class.
+The types of application that can be developed range from basic P2P or client/server applications to massively distributed systems using MapReduce to spread workload efficiently over a large number of machines.  See the  [Wiki](https://github.com/tony-dinucci/Ovule.Nomad/wiki) for an example of how a distributed MapReduce system can be created with a single class.
 
-In addition to allowing for easy distributed execution it can be used to very efficiently keep the number of network transactions under control.  If you want to execute a number of methods on some remote machine then you can just group these and execute them with a single trip over the network.  You can achieve the reusability of a chatty server interface but with the performance of a chunky one.  
+In addition to allowing for easy distributed execution it can be used to very efficiently keep the number of network transactions under control.  A typical design trade-off with networked applications is flexibility/reusability versus performance.  If a remote process offers up lots of small operations then this is very flexible because external processes can consume those small operations in many different ways and combinations.  This isn't particularly efficient in terms of network utilisation though as there will be a lot of chatter over the network.  Remote processes that facilitate the execution of large operations are typically not very flexbible however network utlisation is much more efficient.  With Nomad this trade-off doesn't have to be made.  It takes a novel approach where the caller can decide which operations they want to execute remotely, meaning many small method calls can be bundled into a single larger distributed call.  Since Nomad can happily co-exist with other technologies it can be used purely as a way to optimise existing systems. If you have a method which is making a number of network calls then just execute with Nomad, which will move the execution of it entirely to the remote machine meaning there's only one network transaction (see an example of this in the [Wiki](https://github.com/tony-dinucci/Ovule.Nomad/wiki)).  
 
 ###Security Warning
-Under the hood Nomad uses WCF (by default) and so all security features of WCF are available.  Having said this, Nomad can be used for developing systems where remote nodes have no prior knowledge of the code they are going to execute.  This obviously places those nodes in a very dangerous position.  Security is being taken very seriously and v1.0 won't be released until safeguards are in place but in the meantime please be careful.  
+Under the hood Nomad uses WCF (by default) and so all security features of WCF are available.  Having said this, Nomad can be used for developing systems where remote nodes have no prior knowledge of the code they are going to execute.  This obviously places those nodes in a dangerous position.  Security is being taken very seriously and v1.0 won't be officially released until safeguards are in place but obviously in the meantime don't put it into production.  
 
 ###Potential 
 There is huge future potential for Nomad above what's already been described.  Here are just a few use cases:
