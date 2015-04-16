@@ -1,12 +1,13 @@
 ###News
 2015-04-14
-Fairly major changes have been made.  Due to feedback Nomad is no longer a tool but a framework.  See sample code below and take a look at checked in sample projects.  Updated videos to follow soon.
+Fairly major changes have been made.  Due to feedback Nomad is no longer a tool but a framework.  See sample code below and take a look at checked in sample projects.  
 
 A start has been made on the Wiki!  Please take a look at the examples [here](https://github.com/tony-dinucci/Ovule.Nomad/wiki)
 
 Follow on Twitter: [@OvuleNomad](https://twitter.com/OvuleNomad)
 
-###Ovule.Nomad [.Net]
+###Ovule.Nomad [.Net] [![Build status](https://ci.appveyor.com/api/projects/status/kocanm4n512cid52/branch/dev?svg=true)](https://ci.appveyor.com/project/tony-dinucci/ovule-nomad/branch/dev)
+
 Nomad is an easy to use .Net distributed execution framework which also supports distributed memory.  Currently the main benefits it provides are: 
 
 * Network utilisation while maintaining code flexibility can be optimised - what would typically involve multiple network trips with traditional applications can be aceived with a single trip using Nomad.
