@@ -1,6 +1,6 @@
 ###News
 2015-04-14
-Fairly major changes have been made.  Due to feedback Nomad is no longer a tool but a framework.  See sample code below and take a look at checked in sample projects.  
+Fairly major changes have been made.  Due to feedback Nomad is no longer a tool but a framework.  Sample projects in repo updated accordingly.  
 
 A start has been made on the Wiki!  Please take a look at the examples [here](https://github.com/tony-dinucci/Ovule.Nomad/wiki)
 
@@ -10,7 +10,7 @@ Follow on Twitter: [@OvuleNomad](https://twitter.com/OvuleNomad)
 
 Nomad is an easy to use .Net distributed execution framework which also supports distributed memory.  Currently the main benefits it provides are: 
 
-* Network utilisation while maintaining code flexibility can be optimised - what would typically involve multiple network trips with traditional applications can be aceived with a single trip using Nomad.
+* Network utilisation while maintaining code flexibility can be optimised - what would typically involve multiple network trips with traditional applications can be acheived with a single trip using Nomad.
 * Distributed memory is supported.
 * Large workloads can be split across clusters/grids using an implementation of MapReduce with virtually no setup - you are also free to develop your own algorithms.
 * It happily co-exists with existing technologies such as WCF and so can be used in existing projects.
@@ -61,9 +61,6 @@ The P2P features (which are available in current version) will be expanded upon 
 
 #####Release v3.0
 The main feature here would be decentralised load balancing.  Each “server” node would advertise their capacity, predicted future capacity, willingness to accept additional load, etc.
-
-#####Release v4.0
-To be honest if I get past v1.0 alive I'll be happy!!
 
 ###3rd Party Components Nomad Uses
 
