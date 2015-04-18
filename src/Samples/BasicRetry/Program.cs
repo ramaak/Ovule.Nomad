@@ -1,6 +1,7 @@
 ﻿using Ovule.Nomad;
 using Ovule.Nomad.Client;
 using System;
+using System.Diagnostics;
 
 namespace BasicRetry
 {
@@ -12,8 +13,9 @@ namespace BasicRetry
 
     static void Main(string[] args)
     {
-      //the FaultTolerantBasicRemoteMethodExecuter perform up to 4 attempts (orig call + 3 retries) to execute any methods
-      FaultTolerantBasicRemoteMethodExecuter exec = new FaultTolerantBasicRemoteMethodExecuter(new Uri("net.tcp://localhost:8557/NomadService"), 3);
+      //the FaultTolerantBasicRemoteMethodExecuter perform up to 4 attempts (orig call + 3 retries) to execute any methods.
+      //There will be a pause of TimeSpan.Zero (in this example) between each retry.
+      FaultTolerantBasicRemoteMethodExecuter exec = new FaultTolerantBasicRemoteMethodExecuter(new Uri("net.tcp://localhost:8557/NomadService"), 3, TimeSpan.Zero);
       Console.WriteLine(exec.Execute(() => ThreeIsMagic()));
       Console.ReadLine();
     }
@@ -31,7 +33,7 @@ namespace BasicRetry
         throw new InvalidOperationException("Something bad's just happened!");
       }
       _attempts = 0;
-      return "Hello";
+      return string.Format("Hello from {0}", Process.GetCurrentProcess().ProcessName);
     }
   }
 }

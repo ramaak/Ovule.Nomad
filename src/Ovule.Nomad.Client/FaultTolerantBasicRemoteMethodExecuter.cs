@@ -20,6 +20,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Net.NetworkInformation;
+using System.Threading;
 
 namespace Ovule.Nomad.Client
 {
@@ -33,6 +34,7 @@ namespace Ovule.Nomad.Client
     #region Properties/Fields
 
     private int _retryAttempts;
+    private TimeSpan _retryTimespan;
     private Uri[] _failoverUris;
     private int _initialPingTimeoutSeconds;
 
@@ -51,12 +53,13 @@ namespace Ovule.Nomad.Client
     /// <param name="remoteUri"></param>
     /// <param name="retryAttempts"></param>
     /// <param name="initialPingTimeoutSeconds"></param>
-    public FaultTolerantBasicRemoteMethodExecuter(Uri remoteUri, int retryAttempts, int initialPingTimeoutSeconds = 0)
+    public FaultTolerantBasicRemoteMethodExecuter(Uri remoteUri, int retryAttempts, TimeSpan retryTimespan, int initialPingTimeoutSeconds = 0)
       : base(remoteUri)
     {
       //if <= 0 then we're operating as a BasicRemoteMethodExecuter
       if (retryAttempts > 0)
         _retryAttempts = retryAttempts;
+      _retryTimespan = retryTimespan;
       _initialPingTimeoutSeconds = initialPingTimeoutSeconds;
     }
 
@@ -106,6 +109,8 @@ namespace Ovule.Nomad.Client
       {
         if (executionAttempt > _retryAttempts)
           return null;
+        if (_retryTimespan > TimeSpan.Zero)
+          Thread.Sleep(_retryTimespan);
         return preferredUri;
       }
 

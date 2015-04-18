@@ -1,6 +1,7 @@
 ﻿using Ovule.Nomad.Client;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace BasicFailover
 {
@@ -36,7 +37,7 @@ namespace BasicFailover
 
     static string SayHello()
     {
-      return "Hello";
+      return string.Format("Hello from {0}", Process.GetCurrentProcess().ProcessName);
     }
   }
 }
