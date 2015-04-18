@@ -124,3 +124,7 @@
 /src/Samples/Ovule.Nomad.Sample.API.NetPerformance.Client/obj/Debug
 /src/Samples/Ovule.Nomad.Sample.API.NetPerformance.Shared/bin/Debug
 /src/Samples/Ovule.Nomad.Sample.API.NetPerformance.Shared/obj/Debug
+/src/Samples/BasicFailover/bin/Debug
+/src/Samples/BasicRetry/bin/Debug
+/src/Samples/BasicFailover/obj/Debug
+/src/Samples/BasicRetry/obj/Debug
