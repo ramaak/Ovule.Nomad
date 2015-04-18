@@ -85,6 +85,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Load Distribution", "Load D
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ovule.Nomad.Sample.API.BasicLoadDistribution", "Samples\Ovule.Nomad.Sample.API.BasicLoadDistribution\Ovule.Nomad.Sample.API.BasicLoadDistribution.csproj", "{84ECF8DC-49CC-4366-80CD-BED0250CB2B8}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Network Performance", "Network Performance", "{9327400E-862C-483E-825A-E23197AC1AD5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ovule.Nomad.Sample.API.NetPerformance.Server", "Samples\Ovule.Nomad.Sample.API.NetPerformance.Server\Ovule.Nomad.Sample.API.NetPerformance.Server.csproj", "{ECD2BA1D-31B3-43CB-B5F7-B931DBDD01D5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ovule.Nomad.Sample.API.NetPerformance.Client", "Samples\Ovule.Nomad.Sample.API.NetPerformance.Client\Ovule.Nomad.Sample.API.NetPerformance.Client.csproj", "{484CDB2B-7641-4CBE-8DCA-C0A11FEFA617}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ovule.Nomad.Sample.API.NetPerformance.Shared", "Samples\Ovule.Nomad.Sample.API.NetPerformance.Shared\Ovule.Nomad.Sample.API.NetPerformance.Shared.csproj", "{D5897F2F-A6C8-4434-A588-3D17E3FC53CC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -211,6 +219,18 @@ Global
 		{84ECF8DC-49CC-4366-80CD-BED0250CB2B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{84ECF8DC-49CC-4366-80CD-BED0250CB2B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{84ECF8DC-49CC-4366-80CD-BED0250CB2B8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ECD2BA1D-31B3-43CB-B5F7-B931DBDD01D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ECD2BA1D-31B3-43CB-B5F7-B931DBDD01D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ECD2BA1D-31B3-43CB-B5F7-B931DBDD01D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ECD2BA1D-31B3-43CB-B5F7-B931DBDD01D5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{484CDB2B-7641-4CBE-8DCA-C0A11FEFA617}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{484CDB2B-7641-4CBE-8DCA-C0A11FEFA617}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{484CDB2B-7641-4CBE-8DCA-C0A11FEFA617}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{484CDB2B-7641-4CBE-8DCA-C0A11FEFA617}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D5897F2F-A6C8-4434-A588-3D17E3FC53CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D5897F2F-A6C8-4434-A588-3D17E3FC53CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D5897F2F-A6C8-4434-A588-3D17E3FC53CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D5897F2F-A6C8-4434-A588-3D17E3FC53CC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -245,5 +265,9 @@ Global
 		{0670FE70-C12B-4174-AD85-F7F5453C3BBB} = {9F85C592-902E-4240-B5CE-E8151A251884}
 		{5A68173C-7327-47C5-8FA1-E3DCE54C96FB} = {D6AF76B4-7898-4B20-B4D9-878A1B692580}
 		{84ECF8DC-49CC-4366-80CD-BED0250CB2B8} = {5A68173C-7327-47C5-8FA1-E3DCE54C96FB}
+		{9327400E-862C-483E-825A-E23197AC1AD5} = {D6AF76B4-7898-4B20-B4D9-878A1B692580}
+		{ECD2BA1D-31B3-43CB-B5F7-B931DBDD01D5} = {9327400E-862C-483E-825A-E23197AC1AD5}
+		{484CDB2B-7641-4CBE-8DCA-C0A11FEFA617} = {9327400E-862C-483E-825A-E23197AC1AD5}
+		{D5897F2F-A6C8-4434-A588-3D17E3FC53CC} = {9327400E-862C-483E-825A-E23197AC1AD5}
 	EndGlobalSection
 EndGlobal

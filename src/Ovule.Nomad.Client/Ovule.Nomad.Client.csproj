@@ -54,6 +54,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BasicRemoteMethodExecuter.cs" />
+    <Compile Include="FaultTolerantBasicRemoteMethodExecuter.cs" />
+    <Compile Include="FaultTolerantRemoteMethodNotExecutedException.cs" />
     <Compile Include="RemoteJob.cs" />
     <Compile Include="INomadClient.cs" />
     <Compile Include="IRemoteMethodExecuter.cs" />

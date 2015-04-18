@@ -23,6 +23,9 @@ namespace Ovule.Nomad.Client
 {
   public delegate RemoteJob GetRemoteJobPartFunc(int part, int of);
 
+  /// <summary>
+  /// Instances of this type provide operations for distributing load across a number of remote hosts
+  /// </summary>
   public class ParallelRemoteMethodExecuter
   {
     #region Properties/Fields
