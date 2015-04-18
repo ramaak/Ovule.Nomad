@@ -13,6 +13,7 @@ Nomad is an easy to use .Net distributed execution framework which also supports
 * Network utilisation while maintaining code flexibility can be optimised - what would typically involve multiple network trips with traditional applications can be acheived with a single trip using Nomad.
 * Distributed memory is supported.
 * Large workloads can be split across clusters/grids using an implementation of MapReduce with virtually no setup - you are also free to develop your own algorithms.
+* Fault tolerance measures are available such as failover and request reattempts.
 * It happily co-exists with existing technologies such as WCF and so can be used in existing projects.
 * It allows for very rapid development of distributed systems.
 * It is possible to fall-back into an "offline mode" if the network connection goes down.
@@ -30,8 +31,6 @@ In addition to allowing for easy distributed execution it can be used to very ef
 
 ###Security Warning
 Under the hood Nomad uses WCF (by default) and so all security features of WCF are available.  Having said this, Nomad can be used for developing systems where remote nodes have no prior knowledge of the code they are going to execute.  This obviously places those nodes in a dangerous position.  Security is being taken very seriously and v1.0 won't be officially released until safeguards are in place but obviously in the meantime don't put it into production.  
-
-At present there also isn't much in they way of recovering from failures.  This likely won't be addressed in the v1.0 release which means developers are responsible for this.  It will be addressed before long though.  
 
 ###Potential 
 There is huge future potential for Nomad above what's already been described.  Here are just a few use cases:
