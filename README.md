@@ -2,6 +2,9 @@
 2015-04-14
 Fairly major changes have been made.  Due to feedback Nomad is no longer a tool but a framework.  Sample projects in repo updated accordingly.  
 
+2015-04-14
+Work currently underway getting everything working on Mono - thanks BlackCentipede.
+
 A start has been made on the Wiki!  Please take a look at the examples [here](https://github.com/tony-dinucci/Ovule.Nomad/wiki)
 
 Follow on Twitter: [@OvuleNomad](https://twitter.com/OvuleNomad)
@@ -18,7 +21,7 @@ Nomad is an easy to use .Net distributed execution framework which also supports
 * It allows for very rapid development of distributed systems.
 * It is possible to fall-back into an "offline mode" if the network connection goes down.
 
-Please be aware that Nomad is currently not stable and there is a lot of refinement, optimisation and testing required before it can be deemed production worthy. The code has been released at this early stage so that community feedback can be gathered, helping to move it forward in the most positive direction.
+Please be aware that Nomad is currently not stable and there is a lot of refinement, optimisation and testing required before it can be deemed production worthy. The code has been released at this early stage so that community feedback can be gathered, helping to move it forward in the most positive direction.  
 
 I love to hear feedback, positive or negative - constructive criticism is what is actually the most valuable to the project at this stage!  Please get in touch if there's anything you'd like to say.  Also, if you feel you could help with this project in any way please let me know.
 
