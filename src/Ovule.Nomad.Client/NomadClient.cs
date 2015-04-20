@@ -290,7 +290,7 @@ namespace Ovule.Nomad.Client
       _logger.LogInfo("DoExecuteServiceCall: Transferring control of execution to external process for nomadic method '{0}.{1}'", actOnType.FullName, methodName);
 
       string asmCodeBase = actOnType.Assembly.CodeBase;
-      string actOnAsmPath = Path.Combine(Path.GetDirectoryName(asmCodeBase), Path.GetFileName(asmCodeBase)).Replace("file:\\", "");
+      string actOnAsmPath = Path.Combine(Path.GetDirectoryName(asmCodeBase), Path.GetFileName(asmCodeBase)).Replace(@"file:\\", "").Replace("file:\\", "").Replace("file://", "").Replace("file:/", "").Replace("file:", "");
 
       //want to tell the server the current assembly hash, if it's changed the server will want the new one
 #warning Need to check dependency hashes too.
