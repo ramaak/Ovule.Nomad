@@ -47,7 +47,7 @@ namespace Ovule.Nomad.Discovery
     public byte[] GenerateAssemblyForMethod(MethodInfo method)
     {
       AssemblyDefinition methAsmDef = GetMethodAssemblyDefinition(method);
-      NomadModuleInfo moduleSnapshot = GetRequiredModuleSnapshot(methAsmDef, method);
+      //NomadModuleInfo moduleSnapshot = GetRequiredModuleSnapshot(methAsmDef, method);
 
       CreateEmbeddedResourcesFromReferences(AppDomain.CurrentDomain.BaseDirectory, methAsmDef);
       //PruneAssemblyDefinition(methAsmDef, moduleSnapshot);
@@ -91,7 +91,8 @@ namespace Ovule.Nomad.Discovery
     private AssemblyDefinition GetMethodAssemblyDefinition(MethodInfo method)
     {
       string asmCodeBase = method.DeclaringType.Assembly.CodeBase;
-      string asmPath = Path.Combine(Path.GetDirectoryName(asmCodeBase), Path.GetFileName(asmCodeBase)).Replace(@"file:\\", "").Replace("file:\\", "").Replace("file://", "").Replace("file:/", "").Replace("file:", "");
+      //remove file:// prefix on Windows and file: on *nix (with *nix it's fine to have multiple /'s and we need at least one at start) 
+      string asmPath = Path.Combine(Path.GetDirectoryName(asmCodeBase), Path.GetFileName(asmCodeBase)).Replace("file:\\", "").Replace("file:", "");
 
       AssemblyDefinition asmDef = AssemblyDefinition.ReadAssembly(asmPath);
       if (asmDef == null)

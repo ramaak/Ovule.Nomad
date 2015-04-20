@@ -187,7 +187,7 @@ namespace Ovule.Nomad.Server
         if (parameters != null)
           methParams = parameters.Select(v => v.Value).ToArray();
 
-        object executionMethodResult = executionMethodResult = executionMethod.Invoke(executionObject, methParams);
+        object executionMethodResult = executionMethod.Invoke(executionObject, methParams);
 
         _logger.LogInfo("ExecuteMethod: Returned from method '{0}.{1}'", executionType.FullName, methodName);
 

@@ -65,8 +65,6 @@ namespace Ovule
     /// <param name="arg"></param>
     public static void ThrowIfArgumentIsNoValueString(this object source, Expression<Func<string>> arg)
     {
-      string argName = arg.GetPropertyName();
-      string value = arg.GetPropertyValue();
       ThrowArgumentException(source, arg, (a) => { return !string.IsNullOrWhiteSpace((string)a); }, "It must have a value.");
     }
 

@@ -43,7 +43,6 @@ namespace Ovule
         throw new NotSupportedException("Methods must invoked directly");
 
       Tuple<Type, object>[] args = new Tuple<Type, object>[call.Arguments.Count];
-      object[] argsCpy = args; // used for capture
       ParameterInfo[] parameters = call.Method.GetParameters();
 
       for (int i = 0; i < args.Length; i++)
