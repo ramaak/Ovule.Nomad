@@ -20,12 +20,12 @@ using Ovule.Diagnostics;
 using Ovule.Nomad.Wcf;
 using System;
 using System.Collections.Generic;
-using System.Configuration;
-using System.IO;
 using System.Reflection;
 using System.ServiceModel;
+using System.ServiceModel.Channels;
 using System.ServiceModel.Configuration;
 using System.ServiceModel.Description;
+using System.Xml;
 
 namespace Ovule.Nomad.Server
 {
@@ -79,11 +79,15 @@ namespace Ovule.Nomad.Server
       {
         _logger.LogInfo("Start: Starting self-hosted service");
 
+#if __MonoCS__
+        MonoConfigure();
+#else
         //will trigger call to Configure(...)
         if (_serviceEndpointUri == null)
           ServiceHost = new ServiceHost(typeof(NomadWcfServer)); //relying WCF configuration in app/web.config
         else
           ServiceHost = new ServiceHost(typeof(NomadWcfServer), _serviceEndpointUri);
+#endif
 
         ServiceHost.Open();
 
@@ -123,6 +127,54 @@ namespace Ovule.Nomad.Server
 
     #region Configuration
 
+#if __MonoCS__
+    protected void MonoConfigure()
+    {
+      Binding binding = null;
+
+      if (_serviceEndpointUri == null)
+        throw new NomadServerInitialisationException("Neither a basic service endpoint URI was defined or any WCF configuration. " +
+          "Need at least one of these to be specified in the application configuration");
+
+      ServiceHost = new ServiceHost(typeof(NomadWcfServer));
+      UriType uriType = UriUtils.GetType(_serviceEndpointUri);
+      if (uriType == UriType.Http)
+      {
+        binding = new BasicHttpBinding()
+        {
+          MaxBufferPoolSize = int.MaxValue,
+          MaxReceivedMessageSize = int.MaxValue,
+          ReaderQuotas = XmlDictionaryReaderQuotas.Max
+        };
+      }
+      else if (uriType == UriType.Tcp)
+      {
+        binding = new NetTcpBinding()
+        {
+          MaxBufferPoolSize = int.MaxValue,
+          MaxReceivedMessageSize = int.MaxValue,
+          ReaderQuotas = XmlDictionaryReaderQuotas.Max
+
+        };
+      }
+      else if (uriType == UriType.NamedPipe)
+      {
+        binding = new NetNamedPipeBinding()
+        {
+          MaxBufferPoolSize = int.MaxValue,
+          MaxReceivedMessageSize = int.MaxValue,
+          ReaderQuotas = XmlDictionaryReaderQuotas.Max
+
+        };
+      }
+      else
+        throw new NomadServerInitialisationException(string.Format("Unexpected endpoint type of '{0}'", uriType.ToString()));
+
+      ServiceHost.AddServiceEndpoint(typeof(INomadWcfService), binding, _serviceEndpointUri);
+    }
+#endif
+
+#if !__MonoCS__
     protected static bool TryLoadCustomConfiguration(ServiceConfiguration config)
     {
       ServicesSection servicesSection = NomadConfig.GetSection("system.serviceModel/services") as ServicesSection;
@@ -174,7 +226,7 @@ namespace Ovule.Nomad.Server
         throw;
       }
     }
-
+#endif
     #endregion Configuration
 
     #region OperationContract
