@@ -37,6 +37,12 @@ There is huge future potential for Nomad above what's already been described.  H
 
 3.	Peer-to-peer networking: Basic P2P features are already built in, see the Chat sample application.  Also see the Roadmap for hints on how this could be taken as far as having decentralised “processing marts” where nodes can bid for rights to execute operations on behalf of other nodes.
 
+###Wiki
+The Wiki is currently a work in progress (like everything around here).  It hopefully contains information and examples of interest though [https://github.com/tony-dinucci/Ovule.Nomad/wiki](https://github.com/tony-dinucci/Ovule.Nomad/wiki)
+
+###Twitter
+Keep up to date with the daily activity [@OvuleNomad](https://twitter.com/OvuleNomad)
+
 ###Release Roadmap
 What follows is the planned release roadmap – which is admittedly very ambitious given the level of resources (i.e. currently a single developer with very limited free time) available.  
 
