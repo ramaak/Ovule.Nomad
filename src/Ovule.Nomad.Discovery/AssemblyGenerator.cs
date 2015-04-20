@@ -91,7 +91,7 @@ namespace Ovule.Nomad.Discovery
     private AssemblyDefinition GetMethodAssemblyDefinition(MethodInfo method)
     {
       string asmCodeBase = method.DeclaringType.Assembly.CodeBase;
-      string asmPath = Path.Combine(Path.GetDirectoryName(asmCodeBase), Path.GetFileName(asmCodeBase)).Replace("file:\\", "");
+      string asmPath = Path.Combine(Path.GetDirectoryName(asmCodeBase), Path.GetFileName(asmCodeBase)).Replace(@"file:\\", "").Replace("file:\\", "").Replace("file://", "").Replace("file:/", "").Replace("file:", "");
 
       AssemblyDefinition asmDef = AssemblyDefinition.ReadAssembly(asmPath);
       if (asmDef == null)
