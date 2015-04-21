@@ -208,7 +208,9 @@ namespace Ovule.Nomad.Server
           }
           else if (uriType == UriType.Tcp)
           {
-            config.EnableProtocol(new NetTcpBinding() { MaxBufferPoolSize = int.MaxValue, MaxReceivedMessageSize = int.MaxValue });
+            NetTcpBinding binding = new NetTcpBinding() { MaxBufferPoolSize = int.MaxValue, MaxReceivedMessageSize = int.MaxValue };
+            binding.Security.Mode = SecurityMode.None;
+            config.EnableProtocol(binding);
           }
           else if (uriType == UriType.NamedPipe)
           {

@@ -128,3 +128,5 @@
 /src/Samples/BasicRetry/bin/Debug
 /src/Samples/BasicFailover/obj/Debug
 /src/Samples/BasicRetry/obj/Debug
+/src/Ovule.Nomad.Server.Stock/bin/2
+/src/Ovule.Nomad.Server.Stock/bin

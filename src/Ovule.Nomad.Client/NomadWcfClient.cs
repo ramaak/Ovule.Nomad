@@ -228,11 +228,12 @@ namespace Ovule.Nomad.Client
       {
         binding = new BasicHttpBinding();
       }
-      else if(uriType == UriType.Tcp)
+      else if (uriType == UriType.Tcp)
       {
-        binding = new NetTcpBinding();
+        binding = new NetTcpBinding() { MaxBufferPoolSize = int.MaxValue, MaxReceivedMessageSize = int.MaxValue };
+        ((NetTcpBinding)binding).Security.Mode = SecurityMode.None;
       }
-      else if(uriType == UriType.NamedPipe)
+      else if (uriType == UriType.NamedPipe)
       {
         binding = new NetNamedPipeBinding();
       }
