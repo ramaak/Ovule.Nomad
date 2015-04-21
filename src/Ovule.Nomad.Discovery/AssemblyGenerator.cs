@@ -26,6 +26,19 @@ using System.Reflection;
 
 namespace Ovule.Nomad.Discovery
 {
+  /// <summary>
+  /// This class generates an assembly that contains everything needed to execute a single method.  The types and methods 
+  /// that aren't required are pruned from the assembly that's generated.  Dependant assemblies are bundled up as embedded resources
+  /// as this will allow for easier (and more efficient) transfer over the network.
+  /// 
+  /// At the moment only types and methods are pruned.  Data is avaialble to go further and prune fields/properties however this 
+  /// is probably going to cost more (in CPU time) than it's worth (saving on assembly size).  May be considered in future though.
+  /// 
+  /// It's quite likely in the future that an alternative AssemblyGenerator (or path through this one) will be needed.  This class
+  /// might turn out to be pretty inefficient if there are loads of methods that are being executed with Nomad - since an assembly is 
+  /// generated per method.  In certain cases it may be better to just transfer everything up front.  The old Nomad Processor can be 
+  /// taken out of moth-balls as it's does almost everything we want for ahead-of-time processing.
+  /// </summary>
   public class AssemblyGenerator
   {
     #region Properties/Fields
@@ -44,13 +57,23 @@ namespace Ovule.Nomad.Discovery
 
     #region General Methods
 
+    /// <summary>
+    /// Generates an assembly that contains 'method' and everything that it depends upon.  The assembly is pruned, removing 
+    /// types and methods that are not involved in the execution of the method.
+    /// </summary>
+    /// <param name="method"></param>
+    /// <returns></returns>
     public byte[] GenerateAssemblyForMethod(MethodInfo method)
     {
+      //TODO: may be worth offering choice to do no pruning, if there are loads of methods that are going to be executed remotely 
+      //then it might be more efficient to just transfer everything at the start and not pass lots of pruned (partial) assemblies.
+      //Probably the best option is to allow users to pre-process their applications (using a modified version of the old Processor) and
+      //this will do this heavy lifting up front rather than at application runtime.
       AssemblyDefinition methAsmDef = GetMethodAssemblyDefinition(method);
-      //NomadModuleInfo moduleSnapshot = GetRequiredModuleSnapshot(methAsmDef, method);
+      NomadModuleInfo moduleSnapshot = GetRequiredModuleSnapshot(methAsmDef, method);
 
-      CreateEmbeddedResourcesFromReferences(AppDomain.CurrentDomain.BaseDirectory, methAsmDef);
-      //PruneAssemblyDefinition(methAsmDef, moduleSnapshot);
+      CreateEmbeddedResourcesFromReferences(AppDomain.CurrentDomain.BaseDirectory, methAsmDef, moduleSnapshot);
+      PruneAssemblyDefinition(methAsmDef, moduleSnapshot);
       using(MemoryStream rawAsmStream = new MemoryStream())
       {
         methAsmDef.Write(rawAsmStream);
@@ -70,8 +93,23 @@ namespace Ovule.Nomad.Discovery
       for (int i = assemblyDefToPrune.MainModule.Types.Count - 1; i >= 0; i--) //deleting items so move backwards
       {
         TypeDefinition typeDef = assemblyDefToPrune.MainModule.Types[i];
-        if (requiredTypes.FirstOrDefault(t => t.FullName == typeDef.FullName) == default(TypeReference))
+        if (typeDef.FullName != "<Module>" && requiredTypes.FirstOrDefault(t => t.FullName == typeDef.FullName) == default(TypeReference))
           assemblyDefToPrune.MainModule.Types.RemoveAt(i);
+        else
+        {
+          if (typeDef.HasMethods)
+          {
+            IEnumerable<MethodReference> accessedMethRefs = moduleSnapshot.GetNomadMethods(typeDef.FullName);
+            for (int j = typeDef.Methods.Count - 1; j >= 0; j--)
+            {
+              MethodDefinition methDef = typeDef.Methods[j];
+              //shouldn't need the EntryPoint but there's a bug/feature in Cecil that means you can't clear the entry point if the asm def 
+              //was read from an image (an error will be generated when saving the asm if the entry point's removed)
+              if (!methDef.IsConstructor && methDef != assemblyDefToPrune.MainModule.EntryPoint && accessedMethRefs.FirstOrDefault(m => m.FullName == methDef.FullName) == default(MethodReference))
+                typeDef.Methods.RemoveAt(j);
+            }
+          }
+        }
       }
     }
 
@@ -108,37 +146,33 @@ namespace Ovule.Nomad.Discovery
     /// Return all dependencies of 'assemblyDef'
     /// </summary>
     /// <param name="clientAssemblyDir"></param>
-    /// <param name="assemblyDef"></param>
+    /// <param name="moduleSnapshot"></param>
     /// <param name="knownDependencies"></param>
     /// <returns></returns>
-    private IEnumerable<AssemblyDefinition> GetDependencies(string clientAssemblyDir, AssemblyDefinition assemblyDef, IDictionary<string, AssemblyDefinition> knownDependencies = null)
+    private IEnumerable<AssemblyDefinition> GetDependencies(string clientAssemblyDir, NomadModuleInfo moduleSnapshot, IDictionary<string, AssemblyDefinition> knownDependencies = null)
     {
       if (knownDependencies == null)
         knownDependencies = new Dictionary<string, AssemblyDefinition>();
-      foreach (ModuleDefinition modDef in assemblyDef.Modules)
-      {
-        if (modDef.HasAssemblyReferences)
-        {
-          foreach (AssemblyNameReference asmNameRef in modDef.AssemblyReferences.ToArray())
-          {
-            if (!knownDependencies.ContainsKey(asmNameRef.FullName))
-            {
-              //ignore assemblies that are part of the .Net framework, these will already be available on server.
-              //TODO: Find a better way - at least move out into config so no need to recompile when new libs come along
-              //TODO: At the minute just looking in app dir, need to probe like CLR binder
-              if (!(asmNameRef.IsWindowsRuntime || asmNameRef.Name.ToLower() == "mscorlib" ||
-                asmNameRef.Name.ToLower() == "system" || asmNameRef.Name.ToLower().StartsWith("system.") ||
-                asmNameRef.Name.ToLower() == "presentationframework" || asmNameRef.Name.ToLower() == "presentationcore" ||
-                asmNameRef.Name.ToLower() == "windowsbase"))
-              {
-                string dependentAsmPath = AssemblyUtils.GetAssemblyFilename(clientAssemblyDir, asmNameRef.Name, true);
-                AssemblyDefinition dependentAsmDef = AssemblyDefinition.ReadAssembly(dependentAsmPath);
 
-                knownDependencies.Add(dependentAsmDef.FullName, dependentAsmDef);
-                //this will just fill up knownDependencies so don't care about result
-                GetDependencies(clientAssemblyDir, dependentAsmDef, knownDependencies);
-              }
-            }
+      foreach (AssemblyNameReference referencedAssembly in moduleSnapshot.GetDependencies())
+      {
+        if (!knownDependencies.ContainsKey(referencedAssembly.FullName))
+        {
+          //ignore assemblies that are part of the .Net framework, these will already be available on server.
+          //TODO: Find a better way - at least move out into config so no need to recompile when new libs come along
+          //TODO: At the minute just looking in app dir, need to probe like CLR binder
+          if (!(referencedAssembly.IsWindowsRuntime || referencedAssembly.Name.ToLower() == "mscorlib" ||
+            referencedAssembly.Name.ToLower() == "system" || referencedAssembly.Name.ToLower().StartsWith("system.") ||
+            referencedAssembly.Name.ToLower() == "presentationframework" || referencedAssembly.Name.ToLower() == "presentationcore" ||
+            referencedAssembly.Name.ToLower() == "windowsbase"))
+          {
+            string dependentAsmPath = AssemblyUtils.GetAssemblyFilename(clientAssemblyDir, referencedAssembly.Name, true);
+            AssemblyDefinition dependentAsmDef = AssemblyDefinition.ReadAssembly(dependentAsmPath);
+            PruneAssemblyDefinition(dependentAsmDef, moduleSnapshot);
+
+            knownDependencies.Add(dependentAsmDef.FullName, dependentAsmDef);
+            //this will just fill up knownDependencies so don't care about result
+            GetDependencies(clientAssemblyDir, moduleSnapshot, knownDependencies);
           }
         }
       }
@@ -155,34 +189,34 @@ namespace Ovule.Nomad.Discovery
     /// </summary>
     /// <param name="clientAssemblyDir"></param>
     /// <param name="serverAssemblyDef"></param>
-    private void CreateEmbeddedResourcesFromReferences(string clientAssemblyDir, AssemblyDefinition serverAssemblyDef)
+    private void CreateEmbeddedResourcesFromReferences(string clientAssemblyDir, AssemblyDefinition serverAssemblyDef, NomadModuleInfo moduleSnapshot)
     {
-      IEnumerable<AssemblyDefinition> dependencies = GetDependencies(clientAssemblyDir, serverAssemblyDef);
-      if (dependencies.Any())
+      IEnumerable<AssemblyDefinition> dependencies = GetDependencies(clientAssemblyDir, moduleSnapshot);
+      if (dependencies != null)
       {
         foreach (AssemblyDefinition dependency in dependencies)
         {
-          string dependentAsmPath = AssemblyUtils.GetAssemblyFilename(clientAssemblyDir, dependency.Name, true);
-          AssemblyDefinition dependentAsmDef = AssemblyDefinition.ReadAssembly(dependentAsmPath);
-          //TODO: There may be multiple modules in the assembly
-          serverAssemblyDef.MainModule.Resources.Add(CreateResourceFromAssembly(dependentAsmPath, dependentAsmDef));
+          //TODO: There may be multiple modules in the assembly (fairly low priority)
+          serverAssemblyDef.MainModule.Resources.Add(CreateResourceFromAssembly(dependency));
         }
       }
     }
 
     /// <summary>
-    /// Creates an EmbeddedResource to contain assembly on path 'assemblyPath'
+    /// Creates an EmbeddedResource to contain an assembly.  Embedding dependencies within the main assembly will make it easier 
+    /// and more efficient to transfer over the network.
     /// </summary>
-    /// <param name="directory"></param>
-    /// <param name="assemblyPath"></param>
     /// <param name="assemblyDef"></param>
     /// <returns></returns>
-    private EmbeddedResource CreateResourceFromAssembly(string assemblyPath, AssemblyDefinition assemblyDef)
+    private EmbeddedResource CreateResourceFromAssembly(AssemblyDefinition assemblyDef)
     {
-      byte[] asmBytes = File.ReadAllBytes(assemblyPath);
-      if (asmBytes == null || asmBytes.Length == 0)
-        throw new FileLoadException(string.Format("Failed to read assembly file '{0}'", assemblyPath));
-      return new EmbeddedResource(string.Format("{0}{1}", AssemblyEmbeddedAsResourcePrefix, assemblyDef.FullName), ManifestResourceAttributes.Public, asmBytes);
+      using (MemoryStream memStream = new MemoryStream())
+      {
+        assemblyDef.Write(memStream);
+        if (memStream == null || memStream.Length == 0)
+          throw new FileLoadException(string.Format("Failed to write assembly '{0}' to stream for resource", assemblyDef.FullName));
+        return new EmbeddedResource(string.Format("{0}{1}", AssemblyEmbeddedAsResourcePrefix, assemblyDef.FullName), ManifestResourceAttributes.Public, memStream.ToArray());
+      }
     }
 
     #endregion Dependencies
