@@ -40,7 +40,9 @@ namespace Ovule.Nomad.Server
   public abstract class NomadServer : INomadServer
   {
     #region Properties/Varaibles
-    
+
+    private static ILogger _logger = LoggerFactory.Create(typeof(NomadServer).FullName);
+
     /// <summary>
     /// Ovule.Nomad.Processor bundles dependencies into a single Nomad assembly (to save having to ship files).
     /// Each dependency is stored as a resource with this prefix.
@@ -49,9 +51,8 @@ namespace Ovule.Nomad.Server
     private const string DynamicNomadAssemblyRelativeDir = "dynomad";
     protected const string NomadAssemblyNotFoundReturnValue = "#______#NomadAssemblyNotFound#______#";
 
-    private static ILogger _logger = LoggerFactory.Create(typeof(NomadServer).FullName);
-
     protected static System.Configuration.Configuration NomadConfig { get; private set; }
+    private static Dictionary<string, string> _execTypeAsmHash = new Dictionary<string, string>();
 
     #endregion Properties/Varaibles
 
@@ -281,19 +282,25 @@ namespace Ovule.Nomad.Server
     /// <param name="assemblyFileName"></param>
     /// <param name="typeFullName"></param>
     /// <returns></returns>
-    private Type GetExecutionType(string assemblyFileName, string assemblyFileHash, string typeFullName)
+    protected Type GetExecutionType(string assemblyFileName, string assemblyFileHash, string typeFullName)
     {
       this.ThrowIfArgumentIsNoValueString(() => assemblyFileName);
       this.ThrowIfArgumentIsNoValueString(() => typeFullName);
 
       _logger.LogInfo("GetExecutionType: assemblyFileName = '{0}', typeFullName = '{1}'", assemblyFileName, typeFullName);
 
+      //TODO: Load the assembly into it's own AppDomain so that it can be unloaded and then this exection doesn't need to be thrown
+      if (_execTypeAsmHash.ContainsKey(typeFullName) && _execTypeAsmHash[typeFullName] != assemblyFileHash)
+        throw new NomadException("The assembly '{0}' has changed.  The server must be restarted in order to work with it", assemblyFileName);
+      
       string asmPath = GetAssemblyPath(assemblyFileName, assemblyFileHash);
       Assembly asm = Assembly.LoadFrom(asmPath);
       if (asm == null)
         throw new NomadException(string.Format("Failed to load assembly at path '{0}'", asmPath));
       _logger.LogInfo("GetExecutionType: Assembly '{0}' loaded", asm.FullName);
 
+      if (!_execTypeAsmHash.ContainsKey(typeFullName))
+        _execTypeAsmHash.Add(typeFullName, assemblyFileHash);
 
       Type executionType = asm.GetType(typeFullName);
       if (executionType == null)

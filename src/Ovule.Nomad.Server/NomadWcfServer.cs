@@ -254,8 +254,8 @@ namespace Ovule.Nomad.Server
         }
         else
         {
-          object executionObject = GetExecutionObject(assemblyFileName, assemblyFileHash, typeFullName);
-          Assembly asm = executionObject.GetType().Assembly;
+          Type executionType = GetExecutionType(assemblyFileName, assemblyFileHash, typeFullName);
+          Assembly asm = executionType.Assembly;
           onAssemblyResolve = (s, args) => { return TryResolveAssembly(asm, args.Name, assemblyFileHash); };
           AppDomain.CurrentDomain.AssemblyResolve += onAssemblyResolve;
 
