@@ -23,7 +23,7 @@ namespace Ovule.Nomad.Wcf
 {
   /// <summary>
   /// If Nomad is to be used in WCF settings then implement this interface in some assembly that will ship with both 
-  /// the client and server.  The GetKnownTypes method must return all types that will be sent over the wire so that 
+  /// the client and server.  The GetKnownTypes() method must return all types that will be sent over the wire so that 
   /// the DataContractSerializer knows how to serialise/deserialise everything.
   /// 
   /// N.B. If you don't implement this interface then Nomad will use binary serialisation (with base 64 encoding) which 
@@ -35,7 +35,7 @@ namespace Ovule.Nomad.Wcf
     /// Implementation must return a collection of all types that the application will send the WCF channel.  
     /// Without this information the DataContractSerializer will not know how to serialise/deserialise all objects.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>All types that are known to a DataContractSerializer</returns>
     IEnumerable<Type> GetKnownTypes();
   }
 }

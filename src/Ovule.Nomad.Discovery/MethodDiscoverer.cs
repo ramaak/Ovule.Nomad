@@ -18,6 +18,7 @@ along with Nomad.  If not, see <http://www.gnu.org/licenses/>.
 */
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
@@ -58,9 +59,38 @@ namespace Ovule.Nomad.Discovery
             TypeDefinition typeDef = modDef.Types.FirstOrDefault(t => t.FullName == _methInfo.DeclaringType.FullName);
             if (typeDef != default(TypeDefinition))
             {
-#warning need to account for overloads
-              MethodDefinition methDef = typeDef.Methods.FirstOrDefault(m => m.Name == _methInfo.Name);
-              if (methDef != default(MethodDefinition))
+              MethodDefinition methDef = null;
+              ParameterInfo[] paramInfos = _methInfo.GetParameters();
+              int paramCount = paramInfos == null ? 0 : paramInfos.Length;
+              IEnumerable<MethodDefinition> methDefs = typeDef.Methods.Where(m => m.Name == _methInfo.Name
+                && m.ReturnType.FullName == _methInfo.ReturnType.FullName
+                && paramCount == m.Parameters.Count);
+              if (methDefs != null)
+              {
+                if (methDefs.Any() && methDefs.ElementAtOrDefault(1) == default(MethodDefinition))
+                  methDef = methDefs.ElementAt(0);
+                else //there's more than one method so need to check param types
+                {
+                  foreach (MethodDefinition checkMethDef in methDefs)
+                  {
+                    bool isMatch = true;
+                    for (int i = 0; i < paramCount; i++)
+                    {
+                      if (paramInfos[i].ParameterType.FullName != checkMethDef.Parameters[i].ParameterType.FullName)
+                      {
+                        isMatch = false;
+                        break;
+                      }
+                    }
+                    if (isMatch)
+                    {
+                      methDef = checkMethDef;
+                      break;
+                    }
+                  }
+                }
+              }
+              if (methDef != null)
                 return methDef;
               throw new NomadDiscoveryException("Did not find suitable implementation of method '{0}.{1}' in assembly '{2}'", _methInfo.DeclaringType.FullName, _methInfo.Name, _methInfo.DeclaringType.Assembly.FullName);
             }

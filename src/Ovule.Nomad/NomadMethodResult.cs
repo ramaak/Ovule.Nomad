@@ -29,11 +29,24 @@ namespace Ovule.Nomad
   [Serializable]
   public class NomadMethodResult
   {
+    /// <summary>
+    /// Constains the return value of a nomadic method
+    /// </summary>
     public object ReturnValue { get; private set; }
+
+    /// <summary>
+    /// Contains the values of all non-local variables as they are after a nomadic has been executed
+    /// </summary>
     public IList<IVariable> NonLocalVariables { get; private set; }
 
     private NomadMethodResult() { }
 
+    /// <summary>
+    /// Construct an instance of this type, which holds a nomadic methods return value and the state 
+    /// of the object which contains the method after execution of the method.
+    /// </summary>
+    /// <param name="returnValue"></param>
+    /// <param name="nonLocalVariables"></param>
     public NomadMethodResult(object returnValue, IList<IVariable> nonLocalVariables)
     {
       ReturnValue = returnValue;

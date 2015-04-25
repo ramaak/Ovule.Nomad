@@ -1,0 +1,20 @@
+﻿<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Ovule.Nomad Class Documentation</title>
+</head>
+<body class="vendor-book">
+    <div class="details">
+        <span class="vendor">Vendor Name</span>
+        <span class="locale">en-us</span>
+        <span class="product">Ovule.Nomad Class Documentation</span>
+        <span class="name">Ovule.Nomad Class Documentation</span>
+    </div>
+    <div class="package-list">
+        <div class="package">
+            <!-- NOTE: The "name" span value cannot contain any periods! -->
+            <span class="name">Ovule_Nomad-Doc</span>
+            <a class="current-link" href="Ovule_Nomad-Doc.mshc">Ovule_Nomad-Doc.mshc</a>
+        </div>
+    </div>
+</body>
+</html>

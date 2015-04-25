@@ -128,23 +128,23 @@ namespace Ovule.Nomad.Client
     /// <param name="parameters">The parameters to pass to method 'methodName', e.g. "MyFancyMethod"</param>
     /// <param name="nonLocalVariables">A collection of fields/properties that are currently with reach of method 'methodName', methods it calls, methods they call, etc.</param>
     /// <returns></returns>
-    protected override NomadMethodResult IssueServerRequest(Uri endpoint, NomadMethodType methodType, bool runInMainThread, string assemblyName, string assemblyFileHash, string typeFullName, string methodName, IList<ParameterVariable> parameters, IList<IVariable> nonLocalVariables)
+    protected override NomadMethodResult IssueServerRequest(Uri endpoint, NomadMethodType methodType, string assemblyName, string assemblyFileHash, string typeFullName, string methodName, IList<ParameterVariable> parameters, IList<IVariable> nonLocalVariables)
     {
-      return DoIssueServerRequest(endpoint, methodType, runInMainThread, assemblyName, assemblyFileHash, null, typeFullName, methodName, parameters, nonLocalVariables);
+      return DoIssueServerRequest(endpoint, methodType, assemblyName, assemblyFileHash, null, typeFullName, methodName, parameters, nonLocalVariables);
     }
 
-    protected override NomadMethodResult IssueServerRequest(Uri endpoint, NomadMethodType methodType, bool runInMainThread, string assemblyFileName, string assemblyFileHash, byte[] rawAssembly, string typeFullName, string methodName, IList<ParameterVariable> parameters, IList<IVariable> nonLocalVariables)
+    protected override NomadMethodResult IssueServerRequest(Uri endpoint, NomadMethodType methodType, string assemblyFileName, string assemblyFileHash, byte[] rawAssembly, string typeFullName, string methodName, IList<ParameterVariable> parameters, IList<IVariable> nonLocalVariables)
     {
-      return DoIssueServerRequest(endpoint, methodType, runInMainThread, assemblyFileName, assemblyFileHash, rawAssembly, typeFullName, methodName, parameters, nonLocalVariables);
+      return DoIssueServerRequest(endpoint, methodType, assemblyFileName, assemblyFileHash, rawAssembly, typeFullName, methodName, parameters, nonLocalVariables);
     }
 
-    private NomadMethodResult DoIssueServerRequest(Uri endpoint, NomadMethodType methodType, bool runInMainThread, string assemblyName, string assemblyFileHash, byte[] rawAssembly, string typeFullName, string methodName, IList<ParameterVariable> parameters, IList<IVariable> nonLocalVariables)
+    private NomadMethodResult DoIssueServerRequest(Uri endpoint, NomadMethodType methodType, string assemblyName, string assemblyFileHash, byte[] rawAssembly, string typeFullName, string methodName, IList<ParameterVariable> parameters, IList<IVariable> nonLocalVariables)
     {
       INomadWcfService channel = null;
       try
       {
-        _logger.LogInfo("IssueServerRequest: For request type '{0}', run in main thread '{1}', assembly '{2}', type '{3}' and method '{4}",
-          methodType.ToString(), runInMainThread, assemblyName, typeFullName, methodName);
+        _logger.LogInfo("IssueServerRequest: For request type '{0}', assembly '{1}', type '{2}' and method '{3}",
+          methodType.ToString(), assemblyName, typeFullName, methodName);
 
         if (endpoint == null)
         {
@@ -170,9 +170,9 @@ namespace Ovule.Nomad.Client
           string serialisedResult = null;
 
           if (rawAssembly == null || rawAssembly.Length == 0)
-            serialisedResult = channel.ExecuteNomadMethodUsingBinarySerialiser(methodType, runInMainThread, assemblyName, assemblyFileHash, typeFullName, methodName, serialisedParameters, serialisedNonLocalVariables);
+            serialisedResult = channel.ExecuteNomadMethodUsingBinarySerialiser(methodType, assemblyName, assemblyFileHash, typeFullName, methodName, serialisedParameters, serialisedNonLocalVariables);
           else
-            serialisedResult = channel.ExecuteNomadMethodUsingBinarySerialiserRaw(methodType, runInMainThread, assemblyName, assemblyFileHash, rawAssembly, typeFullName, methodName, serialisedParameters, serialisedNonLocalVariables);
+            serialisedResult = channel.ExecuteNomadMethodUsingBinarySerialiserRaw(methodType, assemblyName, assemblyFileHash, rawAssembly, typeFullName, methodName, serialisedParameters, serialisedNonLocalVariables);
 
           if (serialisedResult != null)
             result = serialiser.DeserialiseBase64<NomadMethodResult>(serialisedResult);
@@ -180,9 +180,9 @@ namespace Ovule.Nomad.Client
         else
         {
           if (rawAssembly == null || rawAssembly.Length == 0)
-            result = channel.ExecuteNomadMethod(methodType, runInMainThread, assemblyName, assemblyFileHash, typeFullName, methodName, parameters, nonLocalVariables);
+            result = channel.ExecuteNomadMethod(methodType, assemblyName, assemblyFileHash, typeFullName, methodName, parameters, nonLocalVariables);
           else
-            result = channel.ExecuteNomadMethodRaw(methodType, runInMainThread, assemblyName, assemblyFileHash, rawAssembly, typeFullName, methodName, parameters, nonLocalVariables);
+            result = channel.ExecuteNomadMethodRaw(methodType, assemblyName, assemblyFileHash, rawAssembly, typeFullName, methodName, parameters, nonLocalVariables);
         }
 
         if (result == null)

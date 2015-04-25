@@ -173,9 +173,9 @@ namespace Ovule.Nomad.Client
     protected ExecuteServiceCallResult ExecuteServiceCall(bool isStatic, Uri remoteEndpointUri, object actOn, Type actOnType, string methodName, IList<ParameterVariable> parameters, byte[] rawAssembly)
     {
       if (isStatic)
-        return new NomadWcfClient().ExecuteStaticServiceCall(rawAssembly, remoteEndpointUri, NomadMethodType.Normal, false, actOnType, methodName, parameters);
+        return new NomadWcfClient().ExecuteStaticServiceCall(rawAssembly, remoteEndpointUri, NomadMethodType.Normal, actOnType, methodName, parameters);
 
-      return new NomadWcfClient().ExecuteServiceCall(rawAssembly, remoteEndpointUri, NomadMethodType.Normal, false, actOn, methodName, parameters);
+      return new NomadWcfClient().ExecuteServiceCall(rawAssembly, remoteEndpointUri, NomadMethodType.Normal, actOn, methodName, parameters);
     }
 
     /// <summary>

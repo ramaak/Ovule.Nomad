@@ -22,66 +22,74 @@ using System.ServiceModel;
 namespace Ovule.Nomad.Wcf
 {
   /// <summary>
-  /// The sole Nomad service contract.  The implementation should provide a route into an implementation of Ovule.Nomad.Server.INomadService
+  /// The sole Nomad WCF service contract.  The implementation should provide a route into an implementation of <see cref="Ovule.Nomad.Server.INomadServer"/>
   /// </summary>
   [ServiceKnownType("GetKnownTypes", typeof(KnownTypeLocator))]
   [ServiceContract]
   public interface INomadWcfService
   {
     /// <summary>
-    /// Refer to comments for Ovule.Nomad.Server.INomadServer.ExecuteNomadicMethod(...)
+    /// The implementation must facilitate the execution of a method within an assembly and type specified by the calling process.
+    /// <see cref="Ovule.Nomad.Server.INomadServer"/>
     /// </summary>
+    /// <param name="methodType"></param>
     /// <param name="assemblyFileName"></param>
+    /// <param name="assemblyFileHash"></param>
     /// <param name="typeFullName"></param>
     /// <param name="methodName"></param>
     /// <param name="parameters"></param>
     /// <param name="nonLocalVariables"></param>
-    /// <returns></returns>
+    /// <returns>The result of executing the method</returns>
     [OperationContract]
-    NomadMethodResult ExecuteNomadMethod(NomadMethodType methodType, bool runInMainThread, string assemblyFileName, string assemblyFileHash, string typeFullName, string methodName, IList<ParameterVariable> parameters, IList<IVariable> nonLocalVariables);
+    NomadMethodResult ExecuteNomadMethod(NomadMethodType methodType, string assemblyFileName, string assemblyFileHash, string typeFullName, string methodName, IList<ParameterVariable> parameters, IList<IVariable> nonLocalVariables);
 
     /// <summary>
-    /// Same as ExecuteNomadMethod(...) however accepts a raw assembly
+    /// The implementation must facilitate the execution of a method within an assembly and type specified by the calling process.
+    /// If the server does not know about the assembly the client wants to execute functionality on then this method must be used and 
+    /// the assembly bytes provided within the 'rawAssembly' parameter.
+    /// <see cref="Ovule.Nomad.Server.INomadServer"/>
     /// </summary>
     /// <param name="methodType"></param>
-    /// <param name="runInMainThread"></param>
+    /// <param name="assemblyFileName"></param>
+    /// <param name="assemblyFileHash"></param>
     /// <param name="rawAssembly"></param>
     /// <param name="typeFullName"></param>
     /// <param name="methodName"></param>
     /// <param name="parameters"></param>
     /// <param name="nonLocalVariables"></param>
-    /// <returns></returns>
+    /// <returns>The result of executing the method</returns>
     [OperationContract]
-    NomadMethodResult ExecuteNomadMethodRaw(NomadMethodType methodType, bool runInMainThread, string assemblyFileName, string assemblyFileHash, byte[] rawAssembly, string typeFullName, string methodName, IList<ParameterVariable> parameters, IList<IVariable> nonLocalVariables);
+    NomadMethodResult ExecuteNomadMethodRaw(NomadMethodType methodType, string assemblyFileName, string assemblyFileHash, byte[] rawAssembly, string typeFullName, string methodName, IList<ParameterVariable> parameters, IList<IVariable> nonLocalVariables);
 
     /// <summary>
-    /// Here for the same purpose as ExecuteNomadMethod however offers the opportunity for alternative forms of serialisation.
+    /// Here for the same purpose as ExecuteNomadMethod(...) however offers the opportunity for alternative forms of serialisation.
     /// Currently, if there are no ServiceKnownTypes then the BinaryFormatter is used on objects that aren't fully known at compile time, i.e. NomadMethodResult and Variable 
     /// and this method is called instead of ExecuteNomadMethod
     /// </summary>
     /// <param name="methodType"></param>
-    /// <param name="runInMainThread"></param>
     /// <param name="assemblyFileName"></param>
+    /// <param name="assemblyFileHash"></param>
     /// <param name="typeFullName"></param>
     /// <param name="methodName"></param>
     /// <param name="serialisedParameters"></param>
     /// <param name="serialisedNonLocalVariables"></param>
-    /// <returns></returns>
+    /// <returns>A base 64 encoded representation of a <see cref="Ovule.Nomad.NomadMethodResult"/></returns>
     [OperationContract]
-    string ExecuteNomadMethodUsingBinarySerialiser(NomadMethodType methodType, bool runInMainThread, string assemblyFileName, string assemblyFileHash, string typeFullName, string methodName, IList<string> serialisedParameters, IList<string> serialisedNonLocalVariables);
+    string ExecuteNomadMethodUsingBinarySerialiser(NomadMethodType methodType, string assemblyFileName, string assemblyFileHash, string typeFullName, string methodName, IList<string> serialisedParameters, IList<string> serialisedNonLocalVariables);
 
     /// <summary>
     /// Same as ExecuteNomadMethodUsingBinarySerialiser(...) however accepts a raw assembly
     /// </summary>
     /// <param name="methodType"></param>
-    /// <param name="runInMainThread"></param>
+    /// <param name="assemblyFileName"></param>
+    /// <param name="assemblyFileHash"></param>
     /// <param name="rawAssembly"></param>
     /// <param name="typeFullName"></param>
     /// <param name="methodName"></param>
     /// <param name="serialisedParameters"></param>
     /// <param name="serialisedNonLocalVariables"></param>
-    /// <returns></returns>
+    /// <returns>A base 64 encoded representation of a <see cref="Ovule.Nomad.NomadMethodResult"/></returns>
     [OperationContract]
-    string ExecuteNomadMethodUsingBinarySerialiserRaw(NomadMethodType methodType, bool runInMainThread, string assemblyFileName, string assemblyFileHash, byte[] rawAssembly, string typeFullName, string methodName, IList<string> serialisedParameters, IList<string> serialisedNonLocalVariables);
+    string ExecuteNomadMethodUsingBinarySerialiserRaw(NomadMethodType methodType, string assemblyFileName, string assemblyFileHash, byte[] rawAssembly, string typeFullName, string methodName, IList<string> serialisedParameters, IList<string> serialisedNonLocalVariables);
   }
 }

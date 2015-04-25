@@ -35,30 +35,24 @@ namespace Ovule.Nomad.Client
     /// The implementation must make a request to a Nomad server to execute a particular method, within the context of a particular object.
     /// </summary>
     /// <param name="methodType">The form of method execution, i.e. Normal, Relay, Repeat, ...</param>
-    /// <param name="runInMainThread">
-    /// If true an attempt must be made to execute the thread on the main thread of the destination process.  
-    /// Indended for use with P2P methods where the method interacts with the destinations GUI in some way</param>
     /// <param name="actOn">The object from which the execution context for running method 'methodName' will come from</param>
     /// <param name="methodName">The method on 'actOn' that should be executed, but on the Nomad Server</param>
     /// <param name="parameters">The parameters to pass to method 'methodName' when it's executed</param>
     /// <returns></returns>
-    ExecuteServiceCallResult ExecuteServiceCall(byte[] rawAssembly, Uri endpoint, NomadMethodType methodType, bool runInMainThread, object actOn, string methodName, IList<ParameterVariable> parameters);
-    ExecuteServiceCallResult ExecuteServiceCall(Uri endpoint, NomadMethodType methodType, bool runInMainThread, object actOn, string methodName, IList<ParameterVariable> parameters);
-    ExecuteServiceCallResult ExecuteServiceCall(NomadMethodType methodType, bool runInMainThread, object actOn, string methodName, IList<ParameterVariable> parameters);
+    ExecuteServiceCallResult ExecuteServiceCall(byte[] rawAssembly, Uri endpoint, NomadMethodType methodType, object actOn, string methodName, IList<ParameterVariable> parameters);
+    ExecuteServiceCallResult ExecuteServiceCall(Uri endpoint, NomadMethodType methodType, object actOn, string methodName, IList<ParameterVariable> parameters);
+    ExecuteServiceCallResult ExecuteServiceCall(NomadMethodType methodType, object actOn, string methodName, IList<ParameterVariable> parameters);
 
     /// <summary>
     /// The implementation must make a request to a Nomad server to execute a particular static method.
     /// </summary>
     /// <param name="methodType">The form of method execution, i.e. Normal, Relay, Repeat, ...</param>
-    /// <param name="runInMainThread">
-    /// If true an attempt must be made to execute the thread on the main thread of the destination process.  
-    /// Indended for use with P2P methods where the method interacts with the destinations GUI in some way</param>
     /// <param name="actOn">The object from which the execution context for running method 'methodName' will come from</param>
     /// <param name="methodName">The method on 'actOn' that should be executed, but on the Nomad Server</param>
     /// <param name="parameters">The parameters to pass to method 'methodName' when it's executed</param>
     /// <returns></returns>
-    ExecuteServiceCallResult ExecuteStaticServiceCall(byte[] rawAssembly, Uri endpoint, NomadMethodType methodType, bool runInMainThread, Type actOnType, string methodName, IList<ParameterVariable> parameters);
-    ExecuteServiceCallResult ExecuteStaticServiceCall(Uri endpoint, NomadMethodType methodType, bool runInMainThread, Type actOnType, string methodName, IList<ParameterVariable> parameters);
-    ExecuteServiceCallResult ExecuteStaticServiceCall(NomadMethodType methodType, bool runInMainThread, Type actOnType, string methodName, IList<ParameterVariable> parameters);
+    ExecuteServiceCallResult ExecuteStaticServiceCall(byte[] rawAssembly, Uri endpoint, NomadMethodType methodType, Type actOnType, string methodName, IList<ParameterVariable> parameters);
+    ExecuteServiceCallResult ExecuteStaticServiceCall(Uri endpoint, NomadMethodType methodType, Type actOnType, string methodName, IList<ParameterVariable> parameters);
+    ExecuteServiceCallResult ExecuteStaticServiceCall(NomadMethodType methodType, Type actOnType, string methodName, IList<ParameterVariable> parameters);
   }
 }

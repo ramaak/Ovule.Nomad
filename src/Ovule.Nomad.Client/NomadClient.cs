@@ -131,28 +131,26 @@ namespace Ovule.Nomad.Client
     /// </summary>
     /// <param name="endpoint">The Uri of the endpoint to execute the method on.  If this is null the default server will be used</param>
     /// <param name="methodType">The type of method to execute, i.e. Normal, Relay, Repeat, ...</param>
-    /// <param name="runInMainThread">If true and attempt will be made to execute on the server applications main thread.  Useful in P2P scenarios where the method interacts with the GUI</param>
     /// <param name="assemblyName">The name of the assembly that contains the method to execute</param>
     /// <param name="typeFullName">The name of the type that contains the method to execute</param>
     /// <param name="methodName">The name of the method to execute</param>
     /// <param name="parameters">The parameters for the method to execute</param>
     /// <param name="nonLocalVariables">Collection of properties/fields that are accessed by the method to execute or other methods that can potentially enter the call stack</param>
     /// <returns></returns>
-    protected abstract NomadMethodResult IssueServerRequest(Uri endpoint, NomadMethodType methodType, bool runInMainThread, string assemblyName, string assemblyFileHash, string typeFullName, string methodName, IList<ParameterVariable> parameters, IList<IVariable> nonLocalVariables);
+    protected abstract NomadMethodResult IssueServerRequest(Uri endpoint, NomadMethodType methodType, string assemblyName, string assemblyFileHash, string typeFullName, string methodName, IList<ParameterVariable> parameters, IList<IVariable> nonLocalVariables);
 
     /// <summary>
     /// Same as other IssueServerRequest(...) however the raw assembly bytes to execute the method on are transferred as opposed to just the assembly name
     /// </summary>
     /// <param name="endpoint"></param>
     /// <param name="methodType"></param>
-    /// <param name="runInMainThread"></param>
     /// <param name="rawAssembly"></param>
     /// <param name="typeFullName"></param>
     /// <param name="methodName"></param>
     /// <param name="parameters"></param>
     /// <param name="nonLocalVariables"></param>
     /// <returns></returns>
-    protected abstract NomadMethodResult IssueServerRequest(Uri endpoint, NomadMethodType methodType, bool runInMainThread, string assemblyFileName, string assemblyFileHash, byte[] rawAssembly, string typeFullName, string methodName, IList<ParameterVariable> parameters, IList<IVariable> nonLocalVariables);
+    protected abstract NomadMethodResult IssueServerRequest(Uri endpoint, NomadMethodType methodType, string assemblyFileName, string assemblyFileHash, byte[] rawAssembly, string typeFullName, string methodName, IList<ParameterVariable> parameters, IList<IVariable> nonLocalVariables);
 
     #endregion Abstract
 
@@ -163,12 +161,11 @@ namespace Ovule.Nomad.Client
     /// context that's currently on the client.  
     /// </summary>
     /// <param name="methodType">See documentation for Ovule.Nomad.NomadMethodType</param>
-    /// <param name="runInMainThread">If true and attempt will be made to execute on the server applications main thread.  Useful in P2P scenarios where the method interacts with the GUI</param>
     /// <param name="actOn">The object of which type the method will execute on.  For static methods the method will not execute on the object but on the type.</param>
     /// <param name="methodName">The name of the method to execute on object/type taken from 'actOn' parameter</param>
     /// <param name="parameters">The parameters to pass to the method to execute</param>
     /// <returns></returns>
-    public virtual ExecuteServiceCallResult ExecuteServiceCall(byte[] rawAssembly, Uri endpoint, NomadMethodType methodType, bool runInMainThread, object actOn, string methodName, IList<ParameterVariable> parameters)
+    public virtual ExecuteServiceCallResult ExecuteServiceCall(byte[] rawAssembly, Uri endpoint, NomadMethodType methodType, object actOn, string methodName, IList<ParameterVariable> parameters)
     {
       try
       {
@@ -178,7 +175,7 @@ namespace Ovule.Nomad.Client
         this.ThrowIfArgumentIsNull(() => actOn);
         this.ThrowIfArgumentIsNoValueString(() => methodName);
 
-        return DoExecuteServiceCall(rawAssembly, endpoint, methodType, runInMainThread, actOn, actOn.GetType(), methodName, parameters);
+        return DoExecuteServiceCall(rawAssembly, endpoint, methodType, actOn, actOn.GetType(), methodName, parameters);
       }
       catch (Exception ex)
       {
@@ -192,14 +189,13 @@ namespace Ovule.Nomad.Client
     /// </summary>
     /// <param name="endpoint"></param>
     /// <param name="methodType"></param>
-    /// <param name="runInMainThread"></param>
     /// <param name="actOn"></param>
     /// <param name="methodName"></param>
     /// <param name="parameters"></param>
     /// <returns></returns>
-    public virtual ExecuteServiceCallResult ExecuteServiceCall(Uri endpoint, NomadMethodType methodType, bool runInMainThread, object actOn, string methodName, IList<ParameterVariable> parameters)
+    public virtual ExecuteServiceCallResult ExecuteServiceCall(Uri endpoint, NomadMethodType methodType, object actOn, string methodName, IList<ParameterVariable> parameters)
     {
-      return ExecuteServiceCall(null, endpoint, methodType, runInMainThread, actOn, methodName, parameters);
+      return ExecuteServiceCall(null, endpoint, methodType, actOn, methodName, parameters);
     }
 
     /// <summary>
@@ -207,26 +203,24 @@ namespace Ovule.Nomad.Client
     /// a parameter must be an IShippingContainer (N.B. IShippingContainer will likely be obsolete soon).
     /// </summary>
     /// <param name="methodType"></param>
-    /// <param name="runInMainThread"></param>
     /// <param name="actOn"></param>
     /// <param name="methodName"></param>
     /// <param name="parameters"></param>
     /// <returns></returns>
-    public virtual ExecuteServiceCallResult ExecuteServiceCall(NomadMethodType methodType, bool runInMainThread, object actOn, string methodName, IList<ParameterVariable> parameters)
+    public virtual ExecuteServiceCallResult ExecuteServiceCall(NomadMethodType methodType, object actOn, string methodName, IList<ParameterVariable> parameters)
     {
-      return ExecuteServiceCall(null, null, methodType, runInMainThread, actOn, methodName, parameters);
+      return ExecuteServiceCall(null, null, methodType, actOn, methodName, parameters);
     }
 
     /// <summary>
     /// Same as 'ExecuteServiceCall' however for static methods.
     /// </summary>
     /// <param name="methodType"></param>
-    /// <param name="runInMainThread"></param>
     /// <param name="actOnType"></param>
     /// <param name="methodName"></param>
     /// <param name="parameters"></param>
     /// <returns></returns>
-    public virtual ExecuteServiceCallResult ExecuteStaticServiceCall(byte[] rawAssembly, Uri endpoint, NomadMethodType methodType, bool runInMainThread, Type actOnType, string methodName, IList<ParameterVariable> parameters)
+    public virtual ExecuteServiceCallResult ExecuteStaticServiceCall(byte[] rawAssembly, Uri endpoint, NomadMethodType methodType, Type actOnType, string methodName, IList<ParameterVariable> parameters)
     {
       try
       {
@@ -236,7 +230,7 @@ namespace Ovule.Nomad.Client
         this.ThrowIfArgumentIsNull(() => actOnType);
         this.ThrowIfArgumentIsNoValueString(() => methodName);
 
-        return DoExecuteServiceCall(rawAssembly, endpoint, methodType, runInMainThread, null, actOnType, methodName, parameters);
+        return DoExecuteServiceCall(rawAssembly, endpoint, methodType, null, actOnType, methodName, parameters);
       }
       catch (Exception ex)
       {
@@ -250,14 +244,13 @@ namespace Ovule.Nomad.Client
     /// </summary>
     /// <param name="endpoint"></param>
     /// <param name="methodType"></param>
-    /// <param name="runInMainThread"></param>
     /// <param name="actOnType"></param>
     /// <param name="methodName"></param>
     /// <param name="parameters"></param>
     /// <returns></returns>
-    public virtual ExecuteServiceCallResult ExecuteStaticServiceCall(Uri endpoint, NomadMethodType methodType, bool runInMainThread, Type actOnType, string methodName, IList<ParameterVariable> parameters)
+    public virtual ExecuteServiceCallResult ExecuteStaticServiceCall(Uri endpoint, NomadMethodType methodType, Type actOnType, string methodName, IList<ParameterVariable> parameters)
     {
-      return ExecuteStaticServiceCall(null, endpoint, methodType, runInMainThread, actOnType, methodName, parameters);
+      return ExecuteStaticServiceCall(null, endpoint, methodType, actOnType, methodName, parameters);
     }
 
     /// <summary>
@@ -265,27 +258,25 @@ namespace Ovule.Nomad.Client
     /// a parameter must be an IShippingContainer (N.B. IShippingContainer will likely be obsolete soon).
     /// </summary>
     /// <param name="methodType"></param>
-    /// <param name="runInMainThread"></param>
     /// <param name="actOnType"></param>
     /// <param name="methodName"></param>
     /// <param name="parameters"></param>
     /// <returns></returns>
-    public virtual ExecuteServiceCallResult ExecuteStaticServiceCall(NomadMethodType methodType, bool runInMainThread, Type actOnType, string methodName, IList<ParameterVariable> parameters)
+    public virtual ExecuteServiceCallResult ExecuteStaticServiceCall(NomadMethodType methodType, Type actOnType, string methodName, IList<ParameterVariable> parameters)
     {
-      return ExecuteStaticServiceCall(null, null, methodType, runInMainThread, actOnType, methodName, parameters);
+      return ExecuteStaticServiceCall(null, null, methodType, actOnType, methodName, parameters);
     }
 
     /// <summary>
     /// For static methods 'actOn' should be null
     /// </summary>
     /// <param name="methodType"></param>
-    /// <param name="runInMainThread"></param>
     /// <param name="actOn">should be null when processing static methods</param>
     /// <param name="actOnType"></param>
     /// <param name="methodName"></param>
     /// <param name="parameters"></param>
     /// <returns></returns>
-    private ExecuteServiceCallResult DoExecuteServiceCall(byte[] rawAssembly, Uri endpoint, NomadMethodType methodType, bool runInMainThread, object actOn, Type actOnType, string methodName, IList<ParameterVariable> parameters)
+    private ExecuteServiceCallResult DoExecuteServiceCall(byte[] rawAssembly, Uri endpoint, NomadMethodType methodType, object actOn, Type actOnType, string methodName, IList<ParameterVariable> parameters)
     {
       _logger.LogInfo("DoExecuteServiceCall: Transferring control of execution to external process for nomadic method '{0}.{1}'", actOnType.FullName, methodName);
 
@@ -329,9 +320,9 @@ namespace Ovule.Nomad.Client
       string asmFilename = Path.GetFileName(actOnAsmPath);
       NomadMethodResult result = null;
       if (rawAssembly != null && rawAssembly.Length > 0)
-        result = IssueServerRequest(serverEndpoint, methodType, runInMainThread, asmFilename, asmHash, rawAssembly, actOnType.FullName, methodName, parameters, nonLocalVaraibles);
+        result = IssueServerRequest(serverEndpoint, methodType, asmFilename, asmHash, rawAssembly, actOnType.FullName, methodName, parameters, nonLocalVaraibles);
       else
-        result = IssueServerRequest(serverEndpoint, methodType, runInMainThread, asmFilename, asmHash, actOnType.FullName, methodName, parameters, nonLocalVaraibles);
+        result = IssueServerRequest(serverEndpoint, methodType, asmFilename, asmHash, actOnType.FullName, methodName, parameters, nonLocalVaraibles);
 
       _logger.LogInfo("DoExecuteServiceCall: Received response from Nomad server for method '{0}.{1}'", actOnType.FullName, methodName);
 

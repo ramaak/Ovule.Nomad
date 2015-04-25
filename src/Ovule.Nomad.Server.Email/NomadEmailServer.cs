@@ -124,7 +124,7 @@ namespace Ovule.Nomad.Server.Email
           if (!string.IsNullOrWhiteSpace(serialisedNonLocalVariables))
             nonLocalVariables = serialiser.DeserialiseBase64<IList<IVariable>>(serialisedNonLocalVariables);
 
-          NomadMethodResult result = base.ExecuteNomadMethod(methodType, runInMainThread, assemblyFilename, assemblyFileHash, typeFullName, methodName, parameters, nonLocalVariables);
+          NomadMethodResult result = base.ExecuteNomadMethod(methodType, assemblyFilename, assemblyFileHash, typeFullName, methodName, parameters, nonLocalVariables);
 
           string serialisedResult = serialiser.SerialiseToBase64(result);
 

@@ -45,6 +45,9 @@ namespace Ovule.Nomad.Wcf
     private static IList<Type> _knownTypes = null;
     private static IEnumerable<string> _knownTypeAssemblyProbingPaths;
 
+    /// <summary>
+    /// Contains all types that will be made known to a DataContractSerializer
+    /// </summary>
     public static IEnumerable<Type> KnownTypes { get { return GetKnownTypes(null); } }
 
     #endregion Properties/Fields
@@ -94,7 +97,7 @@ namespace Ovule.Nomad.Wcf
     /// Returns all Types reported by all implementation of IWcfKnownTypeProvider found in assemblies on the probing paths.
     /// </summary>
     /// <param name="provider"></param>
-    /// <returns></returns>
+    /// <returns>All types that should be made knows to a DataContractSerialiser</returns>
     public static IEnumerable<Type> GetKnownTypes(ICustomAttributeProvider provider)
     {
       if (_knownTypes == null)
@@ -113,6 +116,10 @@ namespace Ovule.Nomad.Wcf
       return _knownTypes;
     }
 
+    /// <summary>
+    /// Records the types that are to be made known to a DataContractSerializer for the life of the process.
+    /// </summary>
+    /// <param name="typesToRecord"></param>
     private static void RecordKnownTypes(IEnumerable<Type> typesToRecord)
     {
       if (typesToRecord != null && typesToRecord.Any())
@@ -151,9 +158,9 @@ namespace Ovule.Nomad.Wcf
     }
 
     /// <summary>
-    /// Returns all Types contained within assemblies on the probing paths that implement IWcfKnownTypeProvider.
+    /// Returns all Types contained within assemblies on the probing paths that implement <see cref="Ovule.Nomad.Wcf.IWcfKnownTypeProvider"/>.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>Types which implement <see cref="Ovule.Nomad.Wcf.IWcfKnownTypeProvider"/></returns>
     private static IEnumerable<Type> GetKnownTypeProviderTypes()
     {
       List<Type> knownTypeProviders = new List<Type>();

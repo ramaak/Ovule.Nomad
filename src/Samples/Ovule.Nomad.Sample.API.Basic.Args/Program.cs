@@ -15,6 +15,11 @@ namespace Ovule.Nomad.Sample.API.Basic.Args
       Console.ReadLine();
     }
 
+    private static int Sum(string a, string b)
+    {
+      return 99;
+    }
+
     private static int Sum(int a, int b)
     {
       Console.WriteLine("Calculating {0} + {1}", a, b);

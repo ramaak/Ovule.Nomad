@@ -19,27 +19,22 @@ along with Nomad.  If not, see <http://www.gnu.org/licenses/>.
 using Ovule.Diagnostics;
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Security.Cryptography;
-using System.Windows;
 
 namespace Ovule.Nomad.Server
 {
   /// <summary>
   /// An abstract implementation of INomadServer.  This handles pretty much everything that's required to run nomadic methods apart from 
   /// the network comms, which is left up to this classes derivatives.
-  /// 
-  /// See documentation for Ovule.Nomad.Server.INomadServer
-  /// 
-  /// TODO: Simulate parameters being passed by ref
-  /// TODO: Tidy up, inc. sorting out horrible method naming!
+  /// <see cref="Ovule.Nomad.Server.INomadServer"/>
   /// </summary>
   public abstract class NomadServer : INomadServer
   {
-    #region Properties/Varaibles
+    /// TODO: Simulate parameters being passed by ref
+
+    #region Properties/Fields
 
     private static ILogger _logger = LoggerFactory.Create(typeof(NomadServer).FullName);
 
@@ -48,36 +43,39 @@ namespace Ovule.Nomad.Server
     /// Each dependency is stored as a resource with this prefix.
     /// </summary>
     private const string AssemblyResourceNamePrefix = "NomadRefRes:";
+
+    /// <summary>
+    /// Directory where nomadic assemblies are stored
+    /// </summary>
     private const string DynamicNomadAssemblyRelativeDir = "dynomad";
+
+    /// <summary>
+    /// If the server does not have an assembly the client is making a request against then this string will be returned which 
+    /// will let the client know it needs to send the raw assembly
+    /// </summary>
     protected const string NomadAssemblyNotFoundReturnValue = "#______#NomadAssemblyNotFound#______#";
 
-    protected static System.Configuration.Configuration NomadConfig { get; private set; }
-    private static Dictionary<string, string> _execTypeAsmHash = new Dictionary<string, string>();
+    private static Dictionary<string, Tuple<Assembly, string>> _execTypeAsmHash = new Dictionary<string, Tuple<Assembly, string>>();
+    private static Dictionary<Tuple<string, string>, string> _asmPaths = new Dictionary<Tuple<string, string>, string>();
 
-    #endregion Properties/Varaibles
-
-    #region ctors
-
-    static NomadServer()
-    {
-      string configFileDll = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, string.Format("{0}.dll", typeof(INomadServer).Assembly.GetName().Name));
-      NomadConfig = ConfigurationManager.OpenExeConfiguration(configFileDll);
-    }
-
-    #endregion ctors
+    #endregion Properties/Fields
 
     #region INomadService
 
     /// <summary>
-    /// Refer to comments for Ovule.Nomad.Server.INomadServer.ExecuteNomadicMethod(...)
+    /// Executes the requested method.  It will set up the execution context using 'nonLocalVariables', call the method 
+    /// passing in 'parameters' and return to the caller with a NomadicMethodResult.  The NomadicMethodResult contains the methods return value plus 
+    /// current values for all non-local fields/properties that are referenced by the method, the method it calls, the methods they call, etc.
     /// </summary>
-    /// <param name="assemblyFileName"></param>
-    /// <param name="typeFullName"></param>
-    /// <param name="methodName"></param>
-    /// <param name="parameters"></param>
-    /// <param name="nonLocalVariables"></param>
-    /// <returns></returns>
-    public virtual NomadMethodResult ExecuteNomadMethod(NomadMethodType methodType, bool runInMainThread, string assemblyFileName, string assemblyFileHash, string typeFullName, string methodName, IList<ParameterVariable> parameters, IList<IVariable> nonLocalVariables)
+    /// <param name="methodType">The form of execution</param>
+    /// <param name="assemblyFileName">The filename of the assembly that contains the method to execute, e.g. "MyFancyAssembly.dll"</param>
+    /// <param name="assemblyFileHash">Used as a checksum to ensure both client and server are talking about the same assembly</param>
+    /// <param name="typeFullName">The full name of the type that contains the method to execute, e.g. "MyFancyApplication.MyFancyType"</param>
+    /// <param name="methodName">The name of the method to execute within Type 'typeFullName', e.g. "MyFancyMethod"</param>
+    /// <param name="parameters">The parameters accepted by method 'methodName'. If the method does not require parameters then set as 'null'</param>
+    /// <param name="nonLocalVariables">The non-local fields/properties that method 'methodName' (or any other method which 'methodName' calls) accesses</param>
+    /// <returns>The results of executing method 'methodName', i.e. the methods return value and details of all non-local fields/properties that have been referenced/changed</returns>
+    public virtual NomadMethodResult ExecuteNomadMethod(NomadMethodType methodType, string assemblyFileName, string assemblyFileHash, string typeFullName, string methodName, IList<ParameterVariable> parameters, IList<IVariable> nonLocalVariables)
     {
       //TODO: make more efficient, this will trigger a search on the probing path and there will be another later.  Ensure just one search
       if (!IsRequiredAssemblyAvailable(assemblyFileName, assemblyFileHash))
@@ -92,14 +90,18 @@ namespace Ovule.Nomad.Server
         this.ThrowIfArgumentIsNoValueString(() => typeFullName);
         this.ThrowIfArgumentIsNoValueString(() => methodName);
 
-        _logger.LogInfo("ExecuteNomadMethod: methodType '{0}', runInMainThread '{1}', assemblyFileName '{2}', typeFullName '{3}', methodName '{4}'",
-          methodType, runInMainThread, assemblyFileName, typeFullName, methodName);
+        _logger.LogInfo("ExecuteNomadMethod: methodType '{0}', assemblyFileName '{1}', typeFullName '{2}', methodName '{3}'",
+          methodType, assemblyFileName, typeFullName, methodName);
 
-        object methodResult = null;
-        if (runInMainThread)
-          throw new NotSupportedException("This feature isn't yet supported");
-        else
-          methodResult = ExecuteNomadMethodInRequiredThread(methodType, assemblyFileName, assemblyFileHash, typeFullName, methodName, parameters, nonLocalVariables);
+        object executionObject = GetExecutionObject(assemblyFileName, assemblyFileHash, typeFullName);
+
+        if (methodType == NomadMethodType.Normal)
+          NonLocalReferenceHelper.SetNonLocalVariables(executionObject, executionObject.GetType(), nonLocalVariables);
+
+        object methodResult = ExecuteMethod(executionObject.GetType(), methodType == NomadMethodType.Normal ? executionObject : null, methodName, parameters, assemblyFileHash);
+
+        if (methodType == NomadMethodType.Normal)
+          NonLocalReferenceHelper.RecoverNonLocalVariables(executionObject, nonLocalVariables);
 
         _logger.LogInfo("ExecuteNomadicMethod: Complete");
         NomadMethodResult result = new NomadMethodResult(methodResult, nonLocalVariables);
@@ -113,54 +115,39 @@ namespace Ovule.Nomad.Server
     }
 
     /// <summary>
-    /// Refer to comments for Ovule.Nomad.Server.INomadServer.ExecuteNomadicMethod(...)
+    /// Executes the requested method.  It will set up the execution context using 'nonLocalVariables', call the method 
+    /// passing in 'parameters' and return to the caller with a NomadicMethodResult.  The NomadicMethodResult contains the methods return value plus 
+    /// current values for all non-local fields/properties that are referenced by the method, the method it calls, the methods they call, etc.
+    /// 
+    /// Same as other ExecuteNomadMethod(...) however accepts a raw assembly.  
+    /// If the server is not aware of an assembly by name 'assemblyFilename' and with checksum 'assemblyFileHash' then it will expect the client 
+    /// to pass it a copy, using this method.
     /// </summary>
-    /// <param name="methodType"></param>
-    /// <param name="runInMainThread"></param>
-    /// <param name="assemblyFileName"></param>
-    /// <param name="typeFullName"></param>
-    /// <param name="methodName"></param>
-    /// <param name="parameters"></param>
-    /// <param name="nonLocalVariables"></param>
-    /// <returns></returns>
-    public virtual NomadMethodResult ExecuteNomadMethod(NomadMethodType methodType, bool runInMainThread, string assemblyFileName, string assemblyFileHash, byte[] rawAssembly, string typeFullName, string methodName, IList<ParameterVariable> parameters, IList<IVariable> nonLocalVariables)
+    /// <param name="methodType">The form of execution</param>
+    /// <param name="assemblyFileName">The filename of the assembly that contains the method to execute, e.g. "MyFancyAssembly.dll"</param>
+    /// <param name="assemblyFileHash">Used as a checksum to ensure both client and server are talking about the same assembly</param>
+    /// <param name="rawAssembly">The assembly (in binary form) to execute the method on</param>
+    /// <param name="typeFullName">The full name of the type that contains the method to execute, e.g. "MyFancyApplication.MyFancyType"</param>
+    /// <param name="methodName">The name of the method to execute within Type 'typeFullName', e.g. "MyFancyMethod"</param>
+    /// <param name="parameters">The parameters accepted by method 'methodName'. If the method does not require parameters then set as 'null'</param>
+    /// <param name="nonLocalVariables">The non-local fields/properties that method 'methodName' (or any other method which 'methodName' calls) accesses</param>
+    /// <returns>The results of executing method 'methodName', i.e. the methods return value and details of all non-local fields/properties that have been referenced/changed</returns>
+    public virtual NomadMethodResult ExecuteNomadMethod(NomadMethodType methodType, string assemblyFileName, string assemblyFileHash, byte[] rawAssembly, string typeFullName, string methodName, IList<ParameterVariable> parameters, IList<IVariable> nonLocalVariables)
     {
       SaveRawAssembly(rawAssembly, assemblyFileName, assemblyFileHash);
-      return ExecuteNomadMethod(methodType, runInMainThread, assemblyFileName, assemblyFileHash, typeFullName, methodName, parameters, nonLocalVariables);
+      return ExecuteNomadMethod(methodType, assemblyFileName, assemblyFileHash, typeFullName, methodName, parameters, nonLocalVariables);
     }
 
     /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="methodType"></param>
-    /// <param name="assemblyFileName"></param>
-    /// <param name="typeFullName"></param>
-    /// <param name="methodName"></param>
-    /// <param name="parameters"></param>
-    /// <param name="nonLocalVariables"></param>
-    /// <returns></returns>
-    private object ExecuteNomadMethodInRequiredThread(NomadMethodType methodType, string assemblyFileName, string assemblyFileHash, string typeFullName, string methodName, IList<ParameterVariable> parameters, IList<IVariable> nonLocalVariables)
-    {
-      object executionObject = GetExecutionObject(assemblyFileName, assemblyFileHash, typeFullName);
-
-      if (methodType == NomadMethodType.Normal)
-        NonLocalReferenceHelper.SetNonLocalVariables(executionObject, executionObject.GetType(), nonLocalVariables);
-
-      object methodResult = ExecuteMethod(executionObject.GetType(), methodType == NomadMethodType.Normal ? executionObject : null, methodName, parameters, assemblyFileHash);
-
-      if (methodType == NomadMethodType.Normal)
-        NonLocalReferenceHelper.RecoverNonLocalVariables(executionObject, nonLocalVariables);
-      return methodResult;
-    }
-
-    /// <summary>
-    /// 
+    /// This is the main method that does the work of actualy invoking the method requested by the client. It performs the invoke and returns the result. 
+    /// It is expected that before this method is called the context in which the method will execute has been set up.
     /// </summary>
     /// <param name="executionType"></param>
-    /// <param name="executionObject">null for static calls</param>
+    /// <param name="executionObject"></param>
     /// <param name="methodName"></param>
     /// <param name="parameters"></param>
-    /// <returns></returns>
+    /// <param name="assemblyFileHash"></param>
+    /// <returns>The result of executing the method the client requested</returns>
     private object ExecuteMethod(Type executionType, object executionObject, string methodName, IList<ParameterVariable> parameters, string assemblyFileHash)
     {
       this.ThrowIfArgumentIsNull(() => executionType);
@@ -174,8 +161,6 @@ namespace Ovule.Nomad.Server
       try
       {
         Type[] methodParamTypes = GetMethodParameterTypes(parameters);
-        FlickIsRepeatParameterIfRequired(parameters);
-
         MethodInfo executionMethod = executionType.GetMethod(methodName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static,
           null, methodParamTypes, null);
 
@@ -205,6 +190,12 @@ namespace Ovule.Nomad.Server
 
     #region Util
 
+    /// <summary>
+    /// Takes a binary representation of an assembly and saves it
+    /// </summary>
+    /// <param name="rawAssembly"></param>
+    /// <param name="assemblyFilename"></param>
+    /// <param name="assemblyFileHash"></param>
     protected void SaveRawAssembly(byte[] rawAssembly, string assemblyFilename, string assemblyFileHash)
     {
       string asmDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, DynamicNomadAssemblyRelativeDir, assemblyFileHash);
@@ -216,27 +207,10 @@ namespace Ovule.Nomad.Server
     }
 
     /// <summary>
-    /// If this is a non-Normal method (i.e. Relay, Repeat, ...) a string parameter will have been added to the method by the Processor and 
-    /// the method will react to the value of this.  Since we're now on the server we want to flick this value so that the method executes 
-    /// in "server mode"
+    /// Returns an array of all ParameterVariable types that are supplied
     /// </summary>
     /// <param name="parameters"></param>
-    private void FlickIsRepeatParameterIfRequired(IList<ParameterVariable> parameters)
-    {
-      if (parameters != null && parameters.Count > 0)
-      {
-        //TODO: Change this so the parameter is of a particular type rather than looking at it's value
-        ParameterVariable potentialIsRepeatVar = parameters[parameters.Count - 1];
-        if (potentialIsRepeatVar != null && Constants.IsRepeatMethodCallFalseValue.Equals(potentialIsRepeatVar.Value))
-          parameters[parameters.Count - 1].Value = Constants.IsRepeatMethodCallTrueValue;
-      }
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="parameters"></param>
-    /// <returns></returns>
+    /// <returns>The types of the parameters in 'parameters'</returns>
     private Type[] GetMethodParameterTypes(IList<ParameterVariable> parameters)
     {
       Type[] methodParamTypes = null;
@@ -259,11 +233,12 @@ namespace Ovule.Nomad.Server
     }
 
     /// <summary>
-    /// 
+    /// Creates an instance of the class which method execution will occur on and returns it.
     /// </summary>
     /// <param name="assemblyFileName"></param>
+    /// <param name="assemblyFileHash"></param>
     /// <param name="typeFullName"></param>
-    /// <returns></returns>
+    /// <returns>An instance of an object</returns>
     protected object GetExecutionObject(string assemblyFileName, string assemblyFileHash, string typeFullName)
     {
       Type executionType = GetExecutionType(assemblyFileName, assemblyFileHash, typeFullName);
@@ -277,11 +252,12 @@ namespace Ovule.Nomad.Server
     }
 
     /// <summary>
-    /// 
+    /// Returns an instance of the Type in 'assemblyFileName' with name 'typeFullName'
     /// </summary>
     /// <param name="assemblyFileName"></param>
+    /// <param name="assemblyFileHash"></param>
     /// <param name="typeFullName"></param>
-    /// <returns></returns>
+    /// <returns>An instance of the Type in 'assemblyFileName' with name 'typeFullName'</returns>
     protected Type GetExecutionType(string assemblyFileName, string assemblyFileHash, string typeFullName)
     {
       this.ThrowIfArgumentIsNoValueString(() => assemblyFileName);
@@ -290,17 +266,26 @@ namespace Ovule.Nomad.Server
       _logger.LogInfo("GetExecutionType: assemblyFileName = '{0}', typeFullName = '{1}'", assemblyFileName, typeFullName);
 
       //TODO: Load the assembly into it's own AppDomain so that it can be unloaded and then this exection doesn't need to be thrown
-      if (_execTypeAsmHash.ContainsKey(typeFullName) && _execTypeAsmHash[typeFullName] != assemblyFileHash)
-        throw new NomadException("The assembly '{0}' has changed.  The server must be restarted in order to work with it", assemblyFileName);
-      
-      string asmPath = GetAssemblyPath(assemblyFileName, assemblyFileHash);
-      Assembly asm = Assembly.LoadFrom(asmPath);
+      Assembly asm = null;
+      if (_execTypeAsmHash.ContainsKey(typeFullName))
+      {
+        Tuple<Assembly,string> asmHash = _execTypeAsmHash[typeFullName];
+        if (asmHash.Item2 != assemblyFileHash)
+          throw new NomadException("The assembly '{0}' has changed.  The server must be restarted in order to work with it", assemblyFileName);
+        asm = asmHash.Item1;
+      }
+
       if (asm == null)
-        throw new NomadException(string.Format("Failed to load assembly at path '{0}'", asmPath));
+      {
+        string asmPath = GetAssemblyPath(assemblyFileName, assemblyFileHash);
+        asm = Assembly.LoadFrom(asmPath);
+        if (asm == null)
+          throw new NomadException(string.Format("Failed to load assembly at path '{0}'", asmPath));
+      }
       _logger.LogInfo("GetExecutionType: Assembly '{0}' loaded", asm.FullName);
 
       if (!_execTypeAsmHash.ContainsKey(typeFullName))
-        _execTypeAsmHash.Add(typeFullName, assemblyFileHash);
+        _execTypeAsmHash.Add(typeFullName, new Tuple<Assembly, string>(asm, assemblyFileHash));
 
       Type executionType = asm.GetType(typeFullName);
       if (executionType == null)
@@ -315,10 +300,11 @@ namespace Ovule.Nomad.Server
     #region Reference Resolution
 
     /// <summary>
-    /// Returns true if the assembly with name 'assemblyFilename' is found on the probing path
+    /// Returns true if the assembly with name 'assemblyFilename' and checksum of 'assemblyFileHash' is found
     /// </summary>
     /// <param name="assemblyFilename"></param>
-    /// <returns></returns>
+    /// <param name="assemblyFileHash"></param>
+    /// <returns>True if the assembly with name 'assemblyFilename' and checksum of 'assemblyFileHash' is found</returns>
     protected bool IsRequiredAssemblyAvailable(string assemblyFilename, string assemblyFileHash)
     {
       string asmPath = GetAssemblyPath(assemblyFilename, assemblyFileHash, false);
@@ -329,7 +315,8 @@ namespace Ovule.Nomad.Server
     /// Returns the directories to consider when looking for assemblies that contain nomadic methods.
     /// Override in a derived class if you want different paths.
     /// </summary>
-    /// <returns></returns>
+    /// <param name="assemblyFileHash"></param>
+    /// <returns>The directories to consider when looking for assemblies that contain nomadic methods</returns>
     protected virtual string[] GetAssemblyProbeDirectories(string assemblyFileHash)
     {
       string[] probeDirs = 
@@ -345,10 +332,16 @@ namespace Ovule.Nomad.Server
     /// Returns the full path to assembly 'assemblyFilename' using the probing paths returned by GetAssemblyProbeDirectories(...). 
     /// If the assembly is not found a FileNotFoundException is thrown.
     /// </summary>
-    /// <param name="assemblyFilename">The filename of the assembly that a full path is needed for, e.g. "MyFancyAssembly.dll"</param>
-    /// <returns></returns>
+    /// <param name="assemblyFilename"></param>
+    /// <param name="assemblyFileHash"></param>
+    /// <param name="throwFileNotFoundException"></param>
+    /// <returns>The full path to assembly 'assemblyFilename' using the probing paths returned by GetAssemblyProbeDirectories(...)</returns>
     protected virtual string GetAssemblyPath(string assemblyFilename, string assemblyFileHash, bool throwFileNotFoundException = true)
     {
+      Tuple<string, string> asmHash = new Tuple<string, string>(assemblyFilename, assemblyFileHash);
+      if (_asmPaths.ContainsKey(asmHash))
+        return _asmPaths[asmHash];
+
       foreach (string probeDir in GetAssemblyProbeDirectories(assemblyFileHash))
       {
         _logger.LogInfo("GetAssemblyPath: Trying to load assembly '{0}' with hash '{1}' from directory '{2}'", assemblyFilename, assemblyFileHash, probeDir);
@@ -356,6 +349,7 @@ namespace Ovule.Nomad.Server
         if (File.Exists(probeFilename))
         {
           _logger.LogInfo("GetAssemblyPath: Found assembly '{0}' with hash '{1}' in directory '{2}'", assemblyFilename, assemblyFileHash, probeDir);
+          _asmPaths.Add(new Tuple<string, string>(assemblyFilename, assemblyFileHash), probeFilename);
           return probeFilename;
         }
       }
@@ -371,14 +365,15 @@ namespace Ovule.Nomad.Server
     }
 
     /// <summary>
-    /// When an assembly is processed (by Ovule.Nomad.Processor) any assemblies which the nomadic methods require 
+    /// When an assembly is processed at the client side any assemblies which the nomadic methods require 
     /// for thier execution are bundled up within the assembly as resources (so that these external libraries don't need 
     /// to be shipped seperatly to the server).  If the runtime can't resolve an assembly itself check if it's bundled as 
     /// a resource and if so load it into the process.
     /// </summary>
     /// <param name="resolveFrom"></param>
     /// <param name="assemblyName"></param>
-    /// <returns></returns>
+    /// <param name="assemblyFileHash"></param>
+    /// <returns>An instance of an Assembly 'assemblyName' if such an assembly exists as a resource in 'resolveFrom'</returns>
     protected Assembly TryResolveAssembly(Assembly resolveFrom, string assemblyName, string assemblyFileHash)
     {
       try
@@ -386,7 +381,7 @@ namespace Ovule.Nomad.Server
         Assembly resolved = null;
         _logger.LogInfo("TryResolveAssembly: Processing request to resolve assembly '{0}'", assemblyName);
 
-        //can happen in P2P setting where serialised type assembly isn't mapped to loaded assembly
+        //can happen in P2P (i.e. both sides have the same process name) setting where serialised type assembly isn't mapped to loaded assembly
         if (assemblyName == resolveFrom.FullName)
           resolved = resolveFrom;
         else

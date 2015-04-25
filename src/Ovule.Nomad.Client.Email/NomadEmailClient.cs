@@ -106,7 +106,7 @@ namespace Ovule.Nomad.Client.Email
     /// <param name="parameters">The parameters to pass to method 'methodName', e.g. "MyFancyMethod"</param>
     /// <param name="nonLocalVariables">A collection of fields/properties that are currently with reach of method 'methodName', methods it calls, methods they call, etc.</param>
     /// <returns></returns>
-    protected override NomadMethodResult IssueServerRequest(Uri endpoint, NomadMethodType methodType, bool runInMainThread, string assemblyName, string assemblyFileHash, string typeFullName, string methodName, IList<ParameterVariable> parameters, IList<IVariable> nonLocalVariables)
+    protected override NomadMethodResult IssueServerRequest(Uri endpoint, NomadMethodType methodType, string assemblyName, string assemblyFileHash, string typeFullName, string methodName, IList<ParameterVariable> parameters, IList<IVariable> nonLocalVariables)
     {
       _logger.LogInfo("IssueServerRequest: For assembly '{0}', type '{1}' and method '{2}", assemblyName, typeFullName, methodName);
 
@@ -118,7 +118,7 @@ namespace Ovule.Nomad.Client.Email
       if (nonLocalVariables != null && nonLocalVariables.Any())
         serialisedNonLocalVariables = serialiser.SerialiseToBase64((object)nonLocalVariables);
 
-      string requestEmailBody = string.Format("{0}>{1}>{2}>{3}>{4}>{5}>{6}>{7}", methodType, runInMainThread, assemblyName, assemblyFileHash, typeFullName, methodName, serialisedParameters, serialisedNonLocalVariables);
+      string requestEmailBody = string.Format("{0}>{1}>{2}>{3}>{4}>{5}>{6}", methodType, assemblyName, assemblyFileHash, typeFullName, methodName, serialisedParameters, serialisedNonLocalVariables);
       NomadMethodResult result = SendServerRequestEmailAndWaitForResponse(requestEmailBody);
 
       _logger.LogInfo("IssueServerRequest: Complete");
@@ -126,7 +126,7 @@ namespace Ovule.Nomad.Client.Email
       return result;
     }
 
-    protected override NomadMethodResult IssueServerRequest(Uri endpoint, NomadMethodType methodType, bool runInMainThread, string assemblyFileName, string assemblyFileHash, byte[] rawAssembly, string typeFullName, string methodName, IList<ParameterVariable> parameters, IList<IVariable> nonLocalVariables)
+    protected override NomadMethodResult IssueServerRequest(Uri endpoint, NomadMethodType methodType, string assemblyFileName, string assemblyFileHash, byte[] rawAssembly, string typeFullName, string methodName, IList<ParameterVariable> parameters, IList<IVariable> nonLocalVariables)
     {
       throw new NotImplementedException(string.Format("This form of request has not been implemented on the '{0}'", typeof(NomadEmailClient).FullName));
     }
