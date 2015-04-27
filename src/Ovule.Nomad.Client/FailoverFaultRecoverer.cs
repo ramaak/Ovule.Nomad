@@ -18,18 +18,15 @@ along with Nomad.  If not, see <http://www.gnu.org/licenses/>.
 */
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Ovule.Nomad.Client
 {
-  public class FailoverFaultRecoverer: IFaultRecoverer
+  public class FailoverFaultRecoverer : IFaultRecoverer
   {
     #region Properties/Fields
 
     public Uri[] FailoverUris { get; private set; }
-    
+
     #endregion Properties/Fields
 
     #region ctors
@@ -45,22 +42,22 @@ namespace Ovule.Nomad.Client
 
     #region IFaultRecoverer
 
-    public void TryRecover(Uri remoteUri, Action failedAction)
+    public void TryRecover(Action<Uri> failedAction)
     {
-      Func<Uri, object> exec = new Func<Uri, object>((uri) => { failedAction(); return null; });
+      Func<Uri, object> exec = new Func<Uri, object>((uri) => { failedAction(uri); return null; });
       DoTryRecover(exec);
     }
 
-    public T TryRecover<T>(Uri remoteUri, Func<T> failedFunc)
+    public T TryRecover<T>(Func<Uri, T> failedFunc)
     {
-      Func<object> exec = new Func<object>(() => { return failedFunc(); });
+      Func<Uri, object> exec = new Func<Uri, object>((uri) => { return failedFunc(uri); });
       return (T)DoTryRecover(exec);
     }
 
-    protected object DoTryRecover(Uri remoteUri, Func<object> executeFunc)
+    protected object DoTryRecover(Func<Uri, object> executeFunc)
     {
       List<Exception> retryExceptions = new List<Exception>();
-      foreach(Uri failoverUri in FailoverUris)
+      foreach (Uri failoverUri in FailoverUris)
       {
         try
         {

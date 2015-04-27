@@ -4,20 +4,22 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Ovule.Nomad.Sample.MapReduce.API.Pi
 {
   public class Program
   {
-    private static readonly object _lock = new object();
-    private const int PiDigits = 3000;
+    private const int PiDigits = 1000;
 
+    /// <summary>
+    /// This sample calulated pi to 'PiDigits', distributing the work evenly over a number of processes.
+    /// </summary>
+    /// <param name="args"></param>
     private static void Main(string[] args)
     {
       Uri[] remoteUris = new Uri[] { 
-        new Uri("net.tcp://192.168.20.45:8557/NomadService"),
+        new Uri("net.tcp://192.168.0.12:8557/NomadService"),
         new Uri("net.tcp://192.168.0.5:8557/NomadService"),
         new Uri("net.tcp://localhost:8557/NomadService"), 
       };
@@ -26,17 +28,6 @@ namespace Ovule.Nomad.Sample.MapReduce.API.Pi
 
       SortedDictionary<int, string> piParts = new SortedDictionary<int, string>();
       string result = "";
-      //Parallel.For(0, 2, (i) =>
-      //  {
-      //    IDictionary<int, string> workerPiParts = MapReduce(PiDigits, i, 2);
-      //    lock (_lock)
-      //    {
-      //      foreach (KeyValuePair<int, string> workerPart in workerPiParts)
-      //      {
-      //        piParts.Add(workerPart.Key, workerPart.Value);
-      //      }
-      //    }
-      //  });
       ParallelRemoteMethodExecuter exec = new ParallelRemoteMethodExecuter(remoteUris);
       IDictionary<int, string>[] workerResults = exec.DistributeOperation<IDictionary<int, string>>(GetRemoteJobPart);
       foreach (IDictionary<int, string> workerResult in workerResults)
@@ -67,14 +58,29 @@ namespace Ovule.Nomad.Sample.MapReduce.API.Pi
 
     private static IDictionary<int, string> MapReduce(int piDigits, int workerNo, int ofWorkers)
     {
-      Thread.Sleep(100);
       return Reduce(Map(piDigits, workerNo, ofWorkers));
     }
 
+    /// <summary>
+    /// This method splits the job of calculating pi to a length of 'piDigits' 
+    /// between 'ofWorkers' processes in an interleaved fashion.  It gets increasingly 
+    /// hard to calculate parts of pi the further through the number you are and for this 
+    /// reason it wouldn't be great to just dish out the first x% to process 1, the second 
+    /// x% to process 2, etc as the later processes will have a much harder job than the 
+    /// earlier ones, meaning we'd not be evenly distributing the load - leading to a longer 
+    /// overall processing time.  
+    /// 
+    /// The result of this method will actually cause Pi to be generated to at least a length 
+    /// of 'piDigits'.  
+    /// </summary>
+    /// <param name="piDigits"></param>
+    /// <param name="workerNo"></param>
+    /// <param name="ofWorkers"></param>
+    /// <returns></returns>
     private static IList<int> Map(int piDigits, int workerNo, int ofWorkers)
     {
       List<int> assignedBlockStartingPositions = new List<int>();
-      int nextStartingPosition = workerNo * 9;
+      int nextStartingPosition = (workerNo - 1) * 9;
       do
       {
         assignedBlockStartingPositions.Add(nextStartingPosition);
@@ -83,28 +89,41 @@ namespace Ovule.Nomad.Sample.MapReduce.API.Pi
       return assignedBlockStartingPositions;
     }
 
+    /// <summary>
+    /// This method accepts a block of work from the Map operation, i.e. 
+    /// the work required of a single process.  It calculates the parts of 
+    /// pi required and and returns them
+    /// </summary>
+    /// <param name="blockStartingPositions"></param>
+    /// <returns></returns>
     private static IDictionary<int, string> Reduce(IList<int> blockStartingPositions)
     {
       ConcurrentDictionary<int, string> piParts = new ConcurrentDictionary<int, string>();
       Parallel.ForEach(blockStartingPositions, (i) =>
         {
-          string piPart = CalcPi(i, i + 9);
+          string piPart = GetPiPart(i, i + 9);
           piParts[i] = piPart;
         });
       return piParts;
     }
 
-    private static string CalcPi(int fromDigit, int toDigit)
+    /// <summary>
+    /// Calculates and returns the 9 digits of pi between 'fromDigit' and 'toDigit'
+    /// </summary>
+    /// <param name="fromDigit"></param>
+    /// <param name="toDigit"></param>
+    /// <returns></returns>
+    private static string GetPiPart(int fromDigit, int toDigit)
     {
       StringBuilder piPart = new StringBuilder(toDigit - fromDigit);
       for (int i = fromDigit; i < toDigit; i += 9)
       {
         int nineDigits = NineDigitsOfPi.StartingAt(i + 1);
         int digitCount = Math.Min(toDigit - i, 9);
-        string ds = string.Format("{0:D9}", nineDigits);
-        piPart.Append(ds.Substring(0, digitCount));
+        string digitString = string.Format("{0:D9}", nineDigits);
+        piPart.Append(digitString.Substring(0, digitCount));
       }
-      Console.WriteLine(piPart.ToString());
+      Console.WriteLine("{0} to {1}:\t\t{2}", fromDigit, toDigit, piPart.ToString());
       return piPart.ToString();
     }
   }

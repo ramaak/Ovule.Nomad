@@ -26,6 +26,7 @@ namespace Ovule.Nomad.Client
   {
     #region Properties/Fields
 
+    public Uri RetryUri { get; private set; }
     public int MaxRetries { get; private set; }
     public TimeSpan PauseBetweenRetries { get; private set; }
 
@@ -33,15 +34,17 @@ namespace Ovule.Nomad.Client
 
     #region ctors
 
-    public RetryFaultRecoverer(int maxRetries)
-      : this(maxRetries, TimeSpan.Zero)
+    public RetryFaultRecoverer(Uri retryUri, int maxRetries)
+      : this(retryUri, maxRetries, TimeSpan.Zero)
     {
     }
 
-    public RetryFaultRecoverer(int maxRetries, TimeSpan pauseBetweenRetries)
+    public RetryFaultRecoverer(Uri retryUri, int maxRetries, TimeSpan pauseBetweenRetries)
     {
+      this.ThrowIfArgumentIsNull(() => retryUri);
       this.ThrowIfArgumentNotPositive(() => maxRetries);
 
+      RetryUri = retryUri;
       MaxRetries = maxRetries;
       PauseBetweenRetries = pauseBetweenRetries;
     }
@@ -50,19 +53,19 @@ namespace Ovule.Nomad.Client
 
     #region IFaultRecoverer
 
-    public void TryRecover(Action failedAction)
+    public void TryRecover(Action<Uri> failedAction)
     {
-      Func<object> exec = new Func<object>(() => { failedAction(); return null; });
+      Func<Uri, object> exec = new Func<Uri, object>((uri) => { failedAction(uri); return null; });
       DoTryRecover(exec);
     }
 
-    public T TryRecover<T>(Func<T> failedFunc)
+    public T TryRecover<T>(Func<Uri, T> failedFunc)
     {
-      Func<object> exec = new Func<object>(() => { return failedFunc(); });
+      Func<Uri, object> exec = new Func<Uri, object>((uri) => { return failedFunc(uri); });
       return (T)DoTryRecover(exec);
     }
 
-    protected object DoTryRecover(Func<object> executeFunc)
+    protected object DoTryRecover(Func<Uri, object> executeFunc)
     {
       List<Exception> retryExceptions = new List<Exception>();
       for (int i = 0; i < MaxRetries; i++)
@@ -72,7 +75,7 @@ namespace Ovule.Nomad.Client
           if (PauseBetweenRetries > TimeSpan.Zero)
             Thread.Sleep(PauseBetweenRetries);
 
-          return executeFunc();
+          return executeFunc(RetryUri);
         }
         catch (Exception ex)
         {

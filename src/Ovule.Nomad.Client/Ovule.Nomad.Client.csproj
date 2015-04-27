@@ -58,8 +58,6 @@
     <Compile Include="BasicRemoteMethodExecuter.cs" />
     <Compile Include="FailoverFaultRecoverer.cs" />
     <Compile Include="FaultRecoveryFailedException.cs" />
-    <Compile Include="FaultTolerantBasicRemoteMethodExecuter.cs" />
-    <Compile Include="FaultTolerantRemoteMethodNotExecutedException.cs" />
     <Compile Include="IFaultRecoverer.cs" />
     <Compile Include="RemoteJob.cs" />
     <Compile Include="INomadClient.cs" />

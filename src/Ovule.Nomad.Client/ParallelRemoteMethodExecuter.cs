@@ -25,6 +25,8 @@ namespace Ovule.Nomad.Client
 
   /// <summary>
   /// Instances of this type provide operations for distributing load across a number of remote hosts
+  /// 
+  /// TODO: Allow for IFaultRecoverer to be injected
   /// </summary>
   public class ParallelRemoteMethodExecuter
   {

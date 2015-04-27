@@ -62,7 +62,7 @@ namespace Ovule.Nomad.Client
       catch
       {
         if (_faultRecoverer != null)
-          return _faultRecoverer.TryRecover<object>(new Func<object>(() => Execute(_remoteUri, operation)));
+          return _faultRecoverer.TryRecover<object>(new Func<Uri, object>((uri) => Execute(uri, operation)));
         throw;
       }
     }
@@ -76,7 +76,7 @@ namespace Ovule.Nomad.Client
       catch
       {
         if (_faultRecoverer != null)
-          return _faultRecoverer.TryRecover<T>(new Func<T>(() => Execute<T>(_remoteUri, operation)));
+          return _faultRecoverer.TryRecover<T>(new Func<Uri, T>((uri) => Execute<T>(uri, operation)));
         throw;
       }
     }
@@ -91,7 +91,7 @@ namespace Ovule.Nomad.Client
       {
         if (_faultRecoverer != null)
           //don't want to reattempt the local call, just the remote one
-          _faultRecoverer.TryRecover((() => Execute(_remoteUri, operation)));
+          _faultRecoverer.TryRecover(((uri) => Execute(uri, operation)));
         else
           throw;
       }

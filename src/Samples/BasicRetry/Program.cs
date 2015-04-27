@@ -13,9 +13,9 @@ namespace BasicRetry
 
     static void Main(string[] args)
     {
-      BasicRemoteMethodExecuter exec = new BasicRemoteMethodExecuter(new Uri("net.tcp://localhost:8557/NomadService"), new RetryFaultRecoverer(3));
+      Uri remoteUri = new Uri("net.tcp://localhost:8557/NomadService");
+      BasicRemoteMethodExecuter exec = new BasicRemoteMethodExecuter(remoteUri, new RetryFaultRecoverer(remoteUri, 3));
       Console.WriteLine(exec.Execute(() => ThreeIsMagic()));
-      exec.ExecuteLocalAndRemote(() => SayHello());
       Console.ReadLine();
     }
 
@@ -33,20 +33,6 @@ namespace BasicRetry
       }
       _attempts = 0;
       return string.Format("Hello from {0}", Process.GetCurrentProcess().ProcessName);
-    }
-
-    static void SayHello()
-    {
-      if (++_attempts != 3)
-      {
-        if (Process.GetCurrentProcess().ProcessName.Contains("Stock"))
-        {
-          Console.WriteLine("Loc & Remote -> Failing attempt {0}", _attempts);
-          throw new InvalidOperationException("Something bad's just happened!");
-        }
-      }
-      _attempts = 0;
-      Console.WriteLine("Hello from process '{0}'!", System.Diagnostics.Process.GetCurrentProcess().ProcessName);
     }
   }
 }

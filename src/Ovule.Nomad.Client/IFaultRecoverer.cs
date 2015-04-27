@@ -20,9 +20,13 @@ using System;
 
 namespace Ovule.Nomad.Client
 {
+  /// <summary>
+  /// Types that offer functionality helping deliver fault tolerance should implement this interface.  
+  /// Instances may be passed into *RemoteMethodExecuters and will be used in times of failure.
+  /// </summary>
   public interface IFaultRecoverer
   {
-    void TryRecover(Uri remoteUri, Action failedAction);
-    T TryRecover<T>(Uri remoteUri, Func<T> failedFunc);
+    void TryRecover(Action<Uri> failedAction);
+    T TryRecover<T>(Func<Uri, T> failedFunc);
   }
 }

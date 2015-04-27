@@ -1,6 +1,5 @@
 ﻿using Ovule.Nomad.Client;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace BasicFailover
@@ -16,20 +15,18 @@ namespace BasicFailover
       {
         //this will attempt to execute the method with a bad defaultUri.  It'll failover and the first failover will also be a bad host.
         //the second failover will be a good host (assuming you've got the stock server running!)
-        FaultTolerantBasicRemoteMethodExecuter exec = new FaultTolerantBasicRemoteMethodExecuter(defaultUri, failoverUris);
+        BasicRemoteMethodExecuter exec = new BasicRemoteMethodExecuter(defaultUri, new FailoverFaultRecoverer(failoverUris));
         Console.WriteLine(exec.Execute(() => SayHello()));
       }
-      catch (FaultTolerantRemoteMethodNotExecutedException ex)
+      catch (FaultRecoveryFailedException ex)
       {
         //this type of exception will only be thrown if no host can execute method.  In order for this to happen 
         //run this program without the stock server.  This is just a demonstration of how to dig into the problems
         Console.WriteLine("Failed to execute method: {0}", ex.Message);
-        if (ex.ExecutionAttemptExceptions != null && ex.ExecutionAttemptExceptions.Count > 0)
+        if (ex.RecoveryAttemptExceptions != null && ex.RecoveryAttemptExceptions.Count > 0)
         {
-          foreach (KeyValuePair<Uri, IList<Exception>> uriExceptions in ex.ExecutionAttemptExceptions)
-          {
-            Console.WriteLine("Problem with Uri {0} was {1}", uriExceptions.Key, uriExceptions.Value[0].Message);
-          }
+          foreach (Exception recoveryAttemptException in ex.RecoveryAttemptExceptions)
+            Console.WriteLine("Error during failover: {0}", recoveryAttemptException.Message);
         }
       }
       Console.ReadLine();
