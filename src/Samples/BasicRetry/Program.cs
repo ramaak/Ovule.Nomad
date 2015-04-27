@@ -13,10 +13,9 @@ namespace BasicRetry
 
     static void Main(string[] args)
     {
-      //the FaultTolerantBasicRemoteMethodExecuter perform up to 4 attempts (orig call + 3 retries) to execute any methods.
-      //There will be a pause of TimeSpan.Zero (in this example) between each retry.
-      FaultTolerantBasicRemoteMethodExecuter exec = new FaultTolerantBasicRemoteMethodExecuter(new Uri("net.tcp://localhost:8557/NomadService"), 3, TimeSpan.Zero);
+      BasicRemoteMethodExecuter exec = new BasicRemoteMethodExecuter(new Uri("net.tcp://localhost:8557/NomadService"), new RetryFaultRecoverer(3));
       Console.WriteLine(exec.Execute(() => ThreeIsMagic()));
+      exec.ExecuteLocalAndRemote(() => SayHello());
       Console.ReadLine();
     }
 
@@ -34,6 +33,20 @@ namespace BasicRetry
       }
       _attempts = 0;
       return string.Format("Hello from {0}", Process.GetCurrentProcess().ProcessName);
+    }
+
+    static void SayHello()
+    {
+      if (++_attempts != 3)
+      {
+        if (Process.GetCurrentProcess().ProcessName.Contains("Stock"))
+        {
+          Console.WriteLine("Loc & Remote -> Failing attempt {0}", _attempts);
+          throw new InvalidOperationException("Something bad's just happened!");
+        }
+      }
+      _attempts = 0;
+      Console.WriteLine("Hello from process '{0}'!", System.Diagnostics.Process.GetCurrentProcess().ProcessName);
     }
   }
 }

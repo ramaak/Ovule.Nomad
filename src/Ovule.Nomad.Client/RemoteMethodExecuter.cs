@@ -129,11 +129,27 @@ namespace Ovule.Nomad.Client
     /// <returns></returns>
     public virtual void ExecuteLocalAndRemote(Uri remoteUri, Expression<Action> operation)
     {
+      Exception remoteEx = null;
       AutoResetEvent done = new AutoResetEvent(false);
-      ThreadPool.QueueUserWorkItem((state) => { Execute(remoteUri, operation); done.Set(); });
+      ThreadPool.QueueUserWorkItem((state) => 
+      {
+        try
+        {
+          Execute(remoteUri, operation); 
+        }
+        catch(Exception ex)
+        {
+          remoteEx = ex;
+        }
+        done.Set();
+      });
       operation.Compile()();
 
       done.WaitOne();
+
+      //rethrow the remote exec exception but on the main thread
+      if (remoteEx != null)
+        throw remoteEx;
     }
 
     #endregion IRemoteMethodExecuter

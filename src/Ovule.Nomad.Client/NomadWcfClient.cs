@@ -224,13 +224,21 @@ namespace Ovule.Nomad.Client
       Binding binding = null;
       EndpointAddress address = new EndpointAddress(uri);
       UriType uriType = UriUtils.GetType(uri);
-      if(uriType == UriType.Http)
+      if (uriType == UriType.Http)
       {
         binding = new BasicHttpBinding();
       }
       else if (uriType == UriType.Tcp)
       {
-        binding = new NetTcpBinding() { MaxBufferPoolSize = int.MaxValue, MaxReceivedMessageSize = int.MaxValue };
+        binding = new NetTcpBinding()
+        {
+          OpenTimeout = TimeSpan.MaxValue,
+          CloseTimeout = TimeSpan.MaxValue,
+          SendTimeout = TimeSpan.MaxValue,
+          ReceiveTimeout = TimeSpan.MaxValue,
+          MaxBufferPoolSize = int.MaxValue,
+          MaxReceivedMessageSize = int.MaxValue
+        };
         ((NetTcpBinding)binding).Security.Mode = SecurityMode.None;
       }
       else if (uriType == UriType.NamedPipe)

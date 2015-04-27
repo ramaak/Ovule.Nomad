@@ -45,7 +45,7 @@ namespace Ovule.Nomad.Sample.MapReduce.API.Proto
       if (part == of)
         blockSize = _corpusLength - blockSize;
 
-      //this RemoteJob will be executed on one of the remote notes
+      //this RemoteJob will be executed on one of the remote nodes
       return new RemoteJob(() => MapReduce(_countChar, _corpusPath, blockStart, blockSize));
     }
 

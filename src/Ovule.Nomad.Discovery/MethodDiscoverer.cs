@@ -63,7 +63,7 @@ namespace Ovule.Nomad.Discovery
               ParameterInfo[] paramInfos = _methInfo.GetParameters();
               int paramCount = paramInfos == null ? 0 : paramInfos.Length;
               IEnumerable<MethodDefinition> methDefs = typeDef.Methods.Where(m => m.Name == _methInfo.Name
-                && m.ReturnType.FullName == _methInfo.ReturnType.FullName
+                && m.ReturnType.Name == _methInfo.ReturnType.Name
                 && paramCount == m.Parameters.Count);
               if (methDefs != null)
               {

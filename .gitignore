@@ -131,3 +131,5 @@
 /src/Samples/BasicRetry/obj/Debug
 /src/Ovule.Nomad.Server.Stock/bin/2
 /src/Ovule.Nomad.Server.Stock/bin
+/src/Samples/Ovule.Nomad.Sample.MapReduce.API.Pi/bin/Debug
+/src/Samples/Ovule.Nomad.Sample.MapReduce.API.Pi/obj/Debug
