@@ -2,6 +2,7 @@
 # This .gitignore file was automatically created by Microsoft(R) Visual Studio.
 ################################################################################
 
+/src/Ovule.Nomad.v12.suo
 /src/Ovule/obj/Debug
 /src/Ovule.Email/obj/Debug
 /src/Ovule.Nomad/obj/Debug
