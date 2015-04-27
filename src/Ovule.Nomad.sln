@@ -99,6 +99,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BasicRetry", "Samples\Basic
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BasicFailover", "Samples\BasicFailover\BasicFailover.csproj", "{BDDA0974-5A27-4F13-A5A9-DBB3643A3CFE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ovule.Nomad.Sample.MapReduce.API.Pi", "Samples\Ovule.Nomad.Sample.MapReduce.API.Pi\Ovule.Nomad.Sample.MapReduce.API.Pi.csproj", "{A199E787-8569-4EB1-855B-67364AC8619C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -245,6 +247,10 @@ Global
 		{BDDA0974-5A27-4F13-A5A9-DBB3643A3CFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BDDA0974-5A27-4F13-A5A9-DBB3643A3CFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BDDA0974-5A27-4F13-A5A9-DBB3643A3CFE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A199E787-8569-4EB1-855B-67364AC8619C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A199E787-8569-4EB1-855B-67364AC8619C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A199E787-8569-4EB1-855B-67364AC8619C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A199E787-8569-4EB1-855B-67364AC8619C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -286,5 +292,6 @@ Global
 		{2BCF2CD3-FF78-4062-A1EA-B37D80F15AEE} = {D6AF76B4-7898-4B20-B4D9-878A1B692580}
 		{E343564A-A54A-4683-A6D8-7CDBCE3BD4EE} = {2BCF2CD3-FF78-4062-A1EA-B37D80F15AEE}
 		{BDDA0974-5A27-4F13-A5A9-DBB3643A3CFE} = {2BCF2CD3-FF78-4062-A1EA-B37D80F15AEE}
+		{A199E787-8569-4EB1-855B-67364AC8619C} = {AC79CF09-0E2F-4583-9190-620E68EB5E42}
 	EndGlobalSection
 EndGlobal

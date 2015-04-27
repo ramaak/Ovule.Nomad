@@ -30,16 +30,23 @@ namespace Ovule.Nomad.Client
     #region Properties/Fields
 
     private Uri _remoteUri;
+    private IFaultRecoverer _faultRecoverer;
 
     #endregion Properties/Fields
 
     #region ctors
 
     public BasicRemoteMethodExecuter(Uri remoteUri)
+      : this(remoteUri, null)
+    {
+    }
+
+    public BasicRemoteMethodExecuter(Uri remoteUri, IFaultRecoverer faultRecoverer)
       : base()
     {
       this.ThrowIfArgumentIsNull(() => remoteUri);
       _remoteUri = remoteUri;
+      _faultRecoverer = faultRecoverer;
     }
 
     #endregion ctors
@@ -48,17 +55,46 @@ namespace Ovule.Nomad.Client
 
     public object Execute(Expression<Action> operation)
     {
-      return Execute(_remoteUri, operation);
+      try
+      {
+        return Execute(_remoteUri, operation);
+      }
+      catch
+      {
+        if (_faultRecoverer != null)
+          return _faultRecoverer.TryRecover<object>(new Func<object>(() => Execute(_remoteUri, operation)));
+        throw;
+      }
     }
 
     public T Execute<T>(Expression<Action> operation)
     {
-      return Execute<T>(_remoteUri, operation);
+      try
+      {
+        return Execute<T>(_remoteUri, operation);
+      }
+      catch
+      {
+        if (_faultRecoverer != null)
+          return _faultRecoverer.TryRecover<T>(new Func<T>(() => Execute<T>(_remoteUri, operation)));
+        throw;
+      }
     }
 
     public void ExecuteLocalAndRemote(Expression<Action> operation)
     {
-      ExecuteLocalAndRemote(_remoteUri, operation);
+      try
+      {
+        ExecuteLocalAndRemote(_remoteUri, operation);
+      }
+      catch
+      {
+        if (_faultRecoverer != null)
+          //don't want to reattempt the local call, just the remote one
+          _faultRecoverer.TryRecover((() => Execute(_remoteUri, operation)));
+        else
+          throw;
+      }
     }
 
     #endregion Convenience

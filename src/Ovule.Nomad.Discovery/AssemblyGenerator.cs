@@ -73,7 +73,7 @@ namespace Ovule.Nomad.Discovery
       NomadModuleInfo moduleSnapshot = GetRequiredModuleSnapshot(methAsmDef, method);
 
       CreateEmbeddedResourcesFromReferences(AppDomain.CurrentDomain.BaseDirectory, methAsmDef, moduleSnapshot);
-      PruneAssemblyDefinition(methAsmDef, moduleSnapshot);
+      //PruneAssemblyDefinition(methAsmDef, moduleSnapshot);
       using(MemoryStream rawAsmStream = new MemoryStream())
       {
         methAsmDef.Write(rawAsmStream);
