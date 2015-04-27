@@ -14,6 +14,8 @@ namespace BasicRetry
     static void Main(string[] args)
     {
       Uri remoteUri = new Uri("net.tcp://localhost:8557/NomadService");
+
+      //The RetryFaultRecoverer will come to life if a request fails
       BasicRemoteMethodExecuter exec = new BasicRemoteMethodExecuter(remoteUri, new RetryFaultRecoverer(remoteUri, 3));
       Console.WriteLine(exec.Execute(() => ThreeIsMagic()));
       Console.ReadLine();

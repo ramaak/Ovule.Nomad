@@ -9,7 +9,11 @@ namespace BasicFailover
     static void Main(string[] args)
     {
       Uri defaultUri = new Uri("net.tcp://999:8557/NomadService");
-      Uri[] failoverUris = new Uri[] { new Uri("net.tcp://888:8557/NomadService"), new Uri("net.tcp://localhost:8557/NomadService") };
+      Uri[] failoverUris = new Uri[] 
+      { 
+        new Uri("net.tcp://888:8557/NomadService"), 
+        new Uri("net.tcp://localhost:8557/NomadService") 
+      };
 
       try
       {
