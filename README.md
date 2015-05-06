@@ -1,7 +1,3 @@
-###News
-2014-04-19 - Nomad is now compatible with Mono and runs on Linux - thanks BlackCentipede.  
-N.B. It's not yet been verified to work with mixed OS networks.  This will be tested/sorted very soon.
-
 ###Ovule.Nomad [.Net] [![Build status](https://ci.appveyor.com/api/projects/status/kocanm4n512cid52/branch/dev?svg=true)](https://ci.appveyor.com/project/tony-dinucci/ovule-nomad/branch/dev)
 
 Nomad is an easy to use .Net distributed execution framework which also supports distributed memory.  Currently the main features are: 
