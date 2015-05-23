@@ -10,9 +10,9 @@ Nomad is an easy to use .Net distributed execution framework which also supports
 * It allows for very rapid development of distributed systems.
 * It is possible to fall-back into an "offline mode" if the network connection goes down.
 
-Please be aware that Nomad is currently not stable and there is still a lot of refinement, optimisation and testing required before it can be deemed production worthy. The code has been released at this early stage so that community feedback can be gathered, helping to move it forward in the most positive direction.  
+Please be aware that Nomad still requires a lot of refinement, optimisation and testing required before it can be deemed production worthy. The code has been released at this early stage so that community feedback can be gathered, helping to move it forward in the most positive direction.  
 
-I love to hear feedback, positive or negative - constructive criticism is what is actually the most valuable to the project at this stage!  Please get in touch if there's anything you'd like to say.  Also, if you feel you could help with this project in any way please let me know.
+I love to hear feedback, positive or negative - constructive criticism is what is actually the most valuable to the project at this stage!  Please get in touch if there's anything you'd like to say.  Also, if you feel you could help with this project in any way please let me know (especially if you're able to do some testing!).
 
 ###What/Why?
 In the simplest sense Nomad lets you distribute the execution of code across multiple processes (typically on remote machines but not necessarily). Not only is code execution distributed but memory is too, meaning class member fields and properties are kept synchronised across disparate processes.  To the master process it will appear as if all code executed within it, even though it may have been spread across many machines.    
